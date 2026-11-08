@@ -29,6 +29,11 @@ Links fixos (sempre a versão mais nova):
 
 No telemóvel, adiciona o endereço do repositório no **Obtainium** para receber as atualizações sozinho.
 
+## Widgets do ecrã inicial (Android)
+`android-widget/` tem os widgets nativos (Kotlin + layouts + ícones). O workflow copia-os para o projeto Android gerado e regista-os no `AndroidManifest.xml`.
+- **Céu · Agora** (2×2), **Céu · Próximas horas** (4×2) e **Céu · Próximos dias** (4×2).
+- O app grava a localização em `ceu-widget.json`; o widget vai buscar a previsão ao Open-Meteo a cada 30 min (ou ao tocar no ícone de atualizar).
+
 ## Estrutura
 ```
 src/index.html                 # todo o app (visual, gráficos, lógica)

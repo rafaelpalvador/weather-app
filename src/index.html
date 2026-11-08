@@ -615,6 +615,7 @@ async function load(place){
   try{
     const { fc, used } = await fetchForecast(place);
     state.data = { fc, used, aq: null, warn: null, ts: Date.now() };
+    if(TAURI) TAURI.invoke("save_widget_data", { json: JSON.stringify({ lat: place.lat, lon: place.lon, name: place.name, source: used === "auto" ? "auto" : state.source, ts: Date.now() }) }).catch(() => {});
     renderAll();
     const [aq, warn] = await Promise.allSettled([fetchAQ(place), fetchWarnings(place)]);
     state.data.aq = aq.status === "fulfilled" ? aq.value : null;

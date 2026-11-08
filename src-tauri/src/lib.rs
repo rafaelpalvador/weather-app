@@ -28,6 +28,15 @@ async fn http_get(url: String) -> Result<HttpOut, String> {
     Ok(HttpOut { status, body })
 }
 
+// ---------- widgets do ecrã inicial: o app grava aqui a localização ----------
+#[tauri::command]
+fn save_widget_data(app: tauri::AppHandle, json: String) -> Result<(), String> {
+    use tauri::Manager;
+    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    std::fs::write(dir.join("ceu-widget.json"), json).map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -36,7 +45,7 @@ pub fn run() {
             _app.handle().plugin(tauri_plugin_geolocation::init())?;
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![http_get])
+        .invoke_handler(tauri::generate_handler![http_get, save_widget_data])
         .run(tauri::generate_context!())
         .expect("erro ao iniciar o app");
 }

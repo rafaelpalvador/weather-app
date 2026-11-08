@@ -53,6 +53,36 @@ jobs:
             grep -q "android.permission.$P\"" "$M" || perl -0pi -e "s#(<manifest[^>]*>)#\$1\n    <uses-permission android:name=\"android.permission.$P\" />#" "$M"
           done
           grep -n "uses-permission" "$M"
+      - name: Widgets do ecrã inicial
+        run: |
+          python3 - <<'PY'
+          import glob, os, re, shutil
+          G = "src-tauri/gen/android/app/src/main"
+          ma = glob.glob(G + "/java/**/MainActivity.kt", recursive=True)[0]
+          pkg = re.search(r"^package\s+([\w.]+)", open(ma).read(), re.M).group(1)
+          src = open("android-widget/CeuWidgets.kt").read()
+          src = re.sub(r"^package\s+[\w.]+", "package " + pkg, src, count=1, flags=re.M)
+          open(os.path.join(os.path.dirname(ma), "CeuWidgets.kt"), "w").write(src)
+          for sub in ("layout", "xml", "drawable"):
+              os.makedirs(f"{G}/res/{sub}", exist_ok=True)
+              for f in glob.glob(f"android-widget/res/{sub}/*.xml"):
+                  shutil.copy(f, f"{G}/res/{sub}/")
+          rec = ""
+          for cls, info, label in (("CeuWidgetSmall", "ceu_widget_small_info", "Céu · Agora"),
+                                   ("CeuWidgetHours", "ceu_widget_hours_info", "Céu · Próximas horas"),
+                                   ("CeuWidgetDays", "ceu_widget_days_info", "Céu · Próximos dias")):
+              rec += f"""
+                  <receiver android:name="{pkg}.{cls}" android:exported="false" android:label="{label}">
+                      <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+                      <meta-data android:name="android.appwidget.provider" android:resource="@xml/{info}" />
+                  </receiver>"""
+          m = G + "/AndroidManifest.xml"
+          x = open(m).read()
+          if "CeuWidgetSmall" not in x:
+              x = x.replace("</application>", rec + "\n    </application>", 1)
+          open(m, "w").write(x)
+          print("pacote:", pkg); print(x)
+          PY
       - name: Compilar APK otimizado
         run: npx tauri android build --apk --target aarch64 --target armv7
       - name: Assinar APK
