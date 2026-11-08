@@ -65,6 +65,15 @@ svg.wi{display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linec
 .warn.orange{background:rgba(255,128,0,.1)}.warn.orange i{background:#ff8a1f}
 .warn.red{background:rgba(255,60,60,.12)}.warn.red i{background:#ff4b4b}
 .warn b{display:block;font-size:14px;font-weight:600}
+.warn{display:block}
+.warn summary{list-style:none;display:flex;gap:12px;cursor:pointer}
+.warn summary::-webkit-details-marker{display:none}
+.warn[open] summary p{display:none}
+.wg{display:flex;gap:12px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1)}
+.wg .wd{flex:none;width:8px;height:8px;border-radius:50%;margin-top:6px;background:#ffcc33}
+.wg .wd.orange{background:#ff8a1f}.wg .wd.red{background:#ff4b4b}
+.wg p{font-size:13px;color:var(--dim);margin-top:3px;line-height:1.4}
+.wg .wp{color:var(--txt);font-weight:500}
 .warn p{font-size:13px;color:var(--dim);margin-top:2px;line-height:1.4}
 
 .blk{background:rgba(19,22,30,.66);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-radius:var(--r);padding:16px;margin-top:12px}
@@ -829,11 +838,30 @@ function renderHero(fc, idx, w){
 function renderWarnings(w){
   const box = $("#warnings"); box.innerHTML = "";
   if(!w || !w.list.length) return;
-  const LV = { yellow: "Aviso amarelo", orange: "Aviso laranja", red: "Aviso vermelho" };
-  const fmt = s => { const d = new Date(s); return `${WD[d.getDay()]} ${String(d.getHours()).padStart(2,"0")}h`; };
-  box.innerHTML = w.list.map(x => `<div class="warn ${x.awarenessLevelID}"><i></i><div>
-      <b>${LV[x.awarenessLevelID]} · ${esc(x.awarenessTypeName)}</b>
-      <p>${x.text ? esc(x.text) + " " : ""}${fmt(x.startTime)} – ${fmt(x.endTime)} · ${esc(w.area)}</p></div></div>`).join("");
+  const LV = { yellow: "Amarelo", orange: "Laranja", red: "Vermelho" }, RK = { yellow: 1, orange: 2, red: 3 };
+  const hh2 = d => `${String(d.getHours()).padStart(2, "0")}h`;
+  const per = (a, b) => { const A = new Date(a), B = new Date(b);
+    return A.toDateString() === B.toDateString() ? `${WD[A.getDay()]} ${hh2(A)}–${hh2(B)}` : `${WD[A.getDay()]} ${hh2(A)} – ${WD[B.getDay()]} ${hh2(B)}`; };
+  /* o IPMA publica um aviso por período e às vezes repete-o: junta tudo por tipo */
+  const groups = {};
+  w.list.forEach(x => {
+    const k = x.awarenessTypeName || "Aviso";
+    const g = groups[k] || (groups[k] = { type: k, lv: x.awarenessLevelID, periods: [], texts: [] });
+    if(RK[x.awarenessLevelID] > RK[g.lv]) g.lv = x.awarenessLevelID;
+    const pk = x.startTime + "|" + x.endTime;
+    if(!g.periods.some(q => q.k === pk)) g.periods.push({ k: pk, s: x.startTime, e: x.endTime });
+    const t = (x.text || "").trim();
+    if(t && !g.texts.includes(t)) g.texts.push(t);
+  });
+  const list = Object.values(groups).sort((a, b) => RK[b.lv] - RK[a.lv]);
+  list.forEach(g => g.periods.sort((a, b) => a.s.localeCompare(b.s)));
+  const top = list[0].lv;
+  box.innerHTML = `<details class="warn ${top}"><summary><i></i><div>
+      <b>${list.length === 1 ? `Aviso ${LV[top].toLowerCase()} · ${esc(list[0].type)}` : `${list.length} avisos IPMA · ${esc(list.map(g => g.type).join(", "))}`}</b>
+      <p>${esc(w.area)} · ${list[0].periods.map(q => per(q.s, q.e)).join(", ")} · toca para detalhes</p></div></summary>
+    ${list.map(g => `<div class="wg"><span class="wd ${g.lv}"></span><div><b>${LV[g.lv]} · ${esc(g.type)}</b>
+      <p class="wp">${g.periods.map(q => per(q.s, q.e)).join(" · ")}</p>${g.texts.map(t => `<p>${esc(t)}</p>`).join("")}</div></div>`).join("")}
+  </details>`;
 }
 function renderHourly(fc, idx){
   const H = fc.hourly, N = Math.min(48, H.time.length - idx);
