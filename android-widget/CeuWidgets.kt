@@ -148,7 +148,9 @@ object CeuWidgetData {
 
     /* ---------- desenhar ---------- */
     fun render(ctx: Context, type: String): RemoteViews {
-        val layout = if (type == "small") R.layout.ceu_widget_small else R.layout.ceu_widget_wide
+        val glass = settings(ctx)?.optString("wstyle", "classic") == "glass"
+        val layout = if (type == "small") (if (glass) R.layout.ceu_widget_small_glass else R.layout.ceu_widget_small)
+                     else (if (glass) R.layout.ceu_widget_wide_glass else R.layout.ceu_widget_wide)
         val v = RemoteViews(ctx.packageName, layout)
         val open = ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)
         if (open != null) {
@@ -183,7 +185,7 @@ object CeuWidgetData {
         val tmax = d.getJSONArray("temperature_2m_max")
         val tmin = d.getJSONArray("temperature_2m_min")
 
-        v.setInt(R.id.w_root, "setBackgroundResource", bg(code, day))
+        if (!glass) v.setInt(R.id.w_root, "setBackgroundResource", bg(code, day))
         v.setTextViewText(R.id.w_city, j.optString("_name", "").ifEmpty { "Céu" })
         v.setTextViewText(R.id.w_temp, deg(temp))
         v.setImageViewResource(R.id.w_icon, icon(code, day))
