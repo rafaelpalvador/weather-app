@@ -115,6 +115,41 @@ svg.wi{display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linec
 .meter{height:3px;border-radius:3px;background:var(--s2);margin-top:6px;position:relative;overflow:hidden}
 .meter i{position:absolute;inset:0 auto 0 0;border-radius:3px}
 
+
+/* cartões */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.cd{background:var(--s1);border-radius:var(--r);padding:14px 14px 16px;display:flex;flex-direction:column;min-height:176px;min-width:0}
+.cd.wide{grid-column:1/-1;min-height:0}
+.cl{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--dim);margin-bottom:10px}
+.cv{font-size:24px;font-weight:500;letter-spacing:-.02em;line-height:1.15}
+.cv.big{font-size:36px;font-weight:400}
+.cv span{font-size:15px;color:var(--dim);margin-left:3px;font-weight:400}
+.cs{font-size:13px;color:var(--txt);margin-top:4px}
+.cs em{font-style:normal;color:var(--faint)}
+.cd p{font-size:12.5px;color:var(--dim);line-height:1.4;margin-top:auto;padding-top:10px}
+.sc{position:relative;height:4px;border-radius:4px;margin:14px 0 2px}
+.sc b{position:absolute;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px var(--s1)}
+.lh{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-top:12px}
+.lh+.sc{margin-top:6px}
+.comp{width:104px;height:104px;margin:-2px auto 0;display:block}
+.suncv{width:100%;height:auto;margin-top:8px}
+.gau{width:112px;height:auto;margin:-4px auto 0;display:block}
+.tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none}
+.tabs button{font-size:12.5px;padding:6px 12px;border-radius:99px;background:var(--s2);color:var(--dim);flex:none}
+.tabs button.on{background:var(--txt);color:var(--bg)}
+.map{width:100%;height:300px;border:0;border-radius:14px;background:var(--s2);display:block}
+.mapph{height:160px;border-radius:14px;background:var(--s2);display:grid;place-items:center;text-align:center;font-size:12.5px;color:var(--faint);padding:20px;line-height:1.5}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 8px;margin-top:4px}
+.act{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;color:var(--dim)}
+.act span{font-size:12px;line-height:1.35;color:var(--txt)}
+.act span i{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:1px}
+.pl{display:flex;flex-direction:column;gap:6px;margin-top:10px;font-size:13px}
+.pl div{display:flex;justify-content:space-between}
+.pl b{font-weight:500}
+.lv0{color:#9fe8b8}.lv1{color:#5ee67a}.lv2{color:#ffe14d}.lv3{color:#ff9a3c}.lv4{color:#ff5e5e}
+.moon{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.moon p{padding-top:8px}
+
 /* modelos */
 .mtxt{font-size:13.5px;color:var(--dim);line-height:1.45;margin:-4px 0 12px}
 .leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--dim);margin-bottom:8px}
@@ -199,7 +234,7 @@ footer{font-size:11px;color:var(--faint);text-align:center;line-height:1.6;margi
     <section class="blk" id="hourly"><div class="sk" style="height:96px"></div></section>
     <section class="blk" id="nowcast" hidden></section>
     <section class="blk" id="daily"><div class="sk" style="height:260px"></div></section>
-    <section class="blk" id="details" hidden></section>
+    <section class="cards" id="details" hidden></section>
     <section class="blk" id="models" hidden></section>
     <footer>Open-Meteo (CC BY 4.0) · ECMWF · DWD · NOAA · Météo-France · IPMA · BigDataCloud / OpenStreetMap</footer>
   </main>
@@ -629,49 +664,217 @@ function renderDaily(fc){
   $("#daily").innerHTML = `<h2>${n} dias</h2>${rows}`;
 }
 
-function stat(label, value, sub, meter){
-  return `<div class="st"><small>${label}</small><b>${value}</b>${sub ? `<span>${sub}</span>` : ""}${meter || ""}</div>`;
+/* ---------- cartões (estilo Honor / Samsung) ---------- */
+const CI = {
+  leaf:'<path d="M5 19C5 10 11 5 20 4c0 9-5 15-14 15"/><path d="M5 19l7-7"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  therm:'<path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/>',
+  wind:'<path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/>',
+  map:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/>',
+  rise:'<path d="M17 18a5 5 0 0 0-10 0M12 3v6M8.5 6.5L12 3l3.5 3.5M3 18h2M19 18h2M3 21h18"/>',
+  drop:'<path d="M12 3s6 6.6 6 11a6 6 0 0 1-12 0c0-4.4 6-11 6-11z"/>',
+  eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  gauge:'<path d="M4.5 18a9 9 0 1 1 15 0"/><path d="M12 13l4-4"/>',
+  bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
+  flower:'<circle cx="12" cy="9" r="2.5"/><path d="M12 6.5a2.5 2.5 0 1 1 2.5 2.5M14.5 9A2.5 2.5 0 1 1 12 11.5M12 11.5A2.5 2.5 0 1 1 9.5 9M9.5 9A2.5 2.5 0 1 1 12 6.5M12 11.5V21M12 17c-2 0-4-1-5-3M12 19c2 0 4-1 5-3"/>',
+  moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'
+};
+const ci = (k, s = 15) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${CI[k]}</svg>`;
+const card = (ico, label, body, cls = "") => `<div class="cd ${cls}"><div class="cl">${ci(ico)}${label}</div>${body}</div>`;
+const scale = (pct, grad) => `<div class="sc" style="background:${grad}"><b style="left:${Math.max(0, Math.min(100, pct))}%"></b></div>`;
+
+const BF_DESC = ["o fumo sobe na vertical","o fumo mostra a direção do vento","sente-se o vento na cara e as folhas mexem","folhas e ramos finos em movimento, bandeiras desfraldadas",
+  "levanta poeira e papéis, os ramos pequenos mexem","as árvores pequenas baloiçam","ramos grandes em movimento, difícil usar guarda-chuva","árvores inteiras em movimento, custa andar contra o vento",
+  "partem-se ramos das árvores","pequenos danos em telhados","árvores arrancadas, danos importantes","danos generalizados","devastação"];
+const DIR_PT = { N:"norte", NNE:"nor-nordeste", NE:"nordeste", ENE:"lés-nordeste", E:"leste", ESE:"lés-sudeste", SE:"sudeste", SSE:"su-sudeste", S:"sul", SSO:"su-sudoeste", SO:"sudoeste", OSO:"oés-sudoeste", O:"oeste", ONO:"oés-noroeste", NO:"noroeste", NNO:"nor-noroeste" };
+const humDesc = h => h < 30 ? "Ar muito seco, pode irritar pele e olhos." : h < 45 ? "Ar seco mas confortável." : h < 65 ? "Humidade confortável." : h < 85 ? "Bastante húmido, é provável formar-se orvalho." : "Muito húmido, sensação abafada ou nevoeiro.";
+const presDesc = p => p < 1000 ? "Pressão baixa, tempo instável." : p < 1010 ? "Pressão ligeiramente baixa." : p < 1020 ? "Pressão normal, confortável." : p < 1030 ? "Pressão ligeiramente alta, tempo estável." : "Pressão alta, tempo seco e estável.";
+const aqAdv = v => v <= 40 ? "Sem restrições para atividades ao ar livre." : v <= 60 ? "Pessoas sensíveis devem moderar o esforço prolongado." : v <= 80 ? "Reduz a atividade intensa ao ar livre." : "Evita atividades ao ar livre.";
+const uvAdv2 = v => v < 3 ? "Risco de escaldão quase nulo." : v < 6 ? "Usa protetor solar a meio do dia." : v < 8 ? "Protetor, chapéu e óculos; evita o sol das 12h às 16h." : "Evita o sol a meio do dia; proteção máxima.";
+
+function moonInfo(d = new Date()){
+  const syn = 29.530588853, ref = Date.UTC(2000, 0, 6, 18, 14);
+  const age = (((d - ref) / 864e5) % syn + syn) % syn, th = 2 * Math.PI * age / syn;
+  const illum = (1 - Math.cos(th)) / 2;
+  const N = ["Lua nova","Lua crescente","Quarto crescente","Crescente gibosa","Lua cheia","Minguante gibosa","Quarto minguante","Lua minguante"];
+  const name = N[Math.floor(((age / syn) * 8 + .5)) % 8];
+  const addD = n => { const x = new Date(d.getTime() + n * 864e5); return `${x.getDate()} ${MON[x.getMonth()]}`; };
+  const toFull = ((syn / 2 - age) + syn) % syn, toNew = syn - age;
+  return { age, th, illum, name, nextFull: addD(toFull), nextNew: addD(toNew), toFull, toNew };
 }
+function moonSVG(th, r = 30){
+  const c = r + 2, rx = Math.abs(Math.cos(th)) * r, wax = th < Math.PI;
+  const s1 = wax ? 1 : 0, gib = Math.cos(th) < 0;
+  const s2 = wax ? (gib ? 1 : 0) : (gib ? 0 : 1);
+  const lit = `M${c} ${c - r} A${r} ${r} 0 0 ${s1} ${c} ${c + r} A${rx.toFixed(2)} ${r} 0 0 ${s2} ${c} ${c - r}Z`;
+  return `<svg viewBox="0 0 ${2 * c} ${2 * c}" width="${2 * c}" height="${2 * c}"><circle cx="${c}" cy="${c}" r="${r}" fill="#262b36"/><path d="${lit}" fill="#e9e6da"/></svg>`;
+}
+
+/* atividades: 2 = bom, 1 = razoável, 0 = mau */
+const AI = {
+  run:'<circle cx="14" cy="4.5" r="1.8"/><path d="M6 20l3.5-5 3 2.5V21M8.5 11.5l2.5-3h3.5l2 3.5 3 .8M11 8.5l1.5 6"/>',
+  bike:'<circle cx="6" cy="16" r="3.5"/><circle cx="18" cy="16" r="3.5"/><path d="M6 16l4-7h5l3 7M10 9l3 7H6M14 6h2"/>',
+  hike:'<circle cx="11" cy="4.5" r="1.8"/><path d="M8 21l2-6 3 2v4M9.5 15l1-6 3 3 2.5.5M17 8v13"/>',
+  fish:'<path d="M3 12c3-4 8-5 12-3l4-3v12l-4-3c-4 2-9 1-12-3z"/><circle cx="8" cy="11" r=".5"/>',
+  beach:'<path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9zM12 12v8M7 21h10"/>',
+  jacket:'<path d="M9 3l3 3 3-3 5 3-2 5-2-1v11H8V10l-2 1-2-5zM12 6v15"/>',
+  cold:'<path d="M12 3a2 2 0 0 0-2 2v9.3a4 4 0 1 0 4 0V5a2 2 0 0 0-2-2z"/><path d="M12 9v7"/>',
+  joint:'<path d="M8 3v7l3 3v8M16 3v6l-3 4M8 10h3"/>',
+  stars:'<path d="M12 3l1.8 3.8 4.2.6-3 2.9.7 4.2L12 12.5 8.3 14.5l.7-4.2-3-2.9 4.2-.6z"/><path d="M5 19h.01M19 18h.01M10 21h.01"/>',
+  car:'<path d="M4 16l1.5-5h13L20 16v3h-3v-1.5H7V19H4z"/><path d="M9 7c0-1.2 1-2.5 1-2.5S11 5.8 11 7a1 1 0 0 1-2 0zM13 7c0-1.2 1-2.5 1-2.5S15 5.8 15 7a1 1 0 0 1-2 0z"/>',
+  laundry:'<path d="M2 5h20M8 5l-3 3 2 2 1-1v9h8V9l1 1 2-2-3-3"/>',
+  plane:'<path d="M2.5 13.5l7-1.5V6.5a1.5 1.5 0 0 1 3 0V12l9 1.5v2l-9-1V19l2 1.5V22L12 21l-2.5 1v-1.5l2-1.5v-4.5l-9 1z"/>'
+};
+function activities(fc, idx, aqv){
+  const H = fc.hourly, D = fc.daily, c = fc.current;
+  const rng = (a, b) => { const o = []; for(let i = idx + a; i < Math.min(idx + b, H.time.length); i++) o.push(i); return o; };
+  const mx = (k, a, b) => Math.max(...rng(a, b).map(i => H[k][i]).filter(isNum));
+  const sum = (k, a, b) => rng(a, b).reduce((s, i) => s + (H[k][i] || 0), 0);
+  const ppNext = (h) => mx("precipitation_probability", 0, h);
+  const at = c.apparent_temperature, t = c.temperature_2m, w = c.wind_speed_10m, g = c.wind_gusts_10m;
+  const sportScore = (i, windLim) => {
+    const T = H.apparent_temperature[i], P = H.precipitation_probability[i] ?? 0, W = H.wind_speed_10m[i], day = H.is_day[i];
+    let s = 2; if(P >= 60 || (H.precipitation[i] || 0) >= .5 || T < 0 || T > 32 || W > windLim * 1.6) s = 0; else if(P >= 30 || T < 5 || T > 26 || W > windLim) s = 1;
+    if(!day && s === 2) s = 1; return s;
+  };
+  const best = (windLim) => { let b = null; rng(0, 14).forEach(i => { if(!H.is_day[i]) return; const s = sportScore(i, windLim); if(b == null || s > b.s) b = { s, i }; }); return b; };
+  const sport = (lbl, ic, windLim) => {
+    const now = sportScore(idx, windLim), b = best(windLim);
+    const txt = ["Mau para " + lbl, "Razoável para " + lbl, "Bom para " + lbl][now];
+    const tip = b && b.s > now ? ` · melhor às ${hh(H.time[b.i])}` : (b && b.s === 2 && now === 2 ? "" : "");
+    return { ic, lv: now, t: txt + tip };
+  };
+  const out = [];
+  out.push(sport("correr", "run", 25));
+  out.push(sport("pedalar", "bike", 18));
+  const hikeLv = ppNext(6) >= 60 || g > 60 ? 0 : ppNext(6) >= 30 || g > 40 || (H.visibility[idx] ?? 1e5) < 3000 ? 1 : 2;
+  out.push({ ic: "hike", lv: hikeLv, t: ["Desaconselhável para caminhadas", "Caminhadas com cuidado", "Bom para caminhadas"][hikeLv] });
+  const pTrend = (H.pressure_msl[idx] ?? 0) - (H.pressure_msl[Math.max(0, idx - 3)] ?? 0);
+  const fishLv = w > 30 || ppNext(4) >= 70 ? 0 : (w < 20 && pTrend <= .5) ? 2 : 1;
+  out.push({ ic: "fish", lv: fishLv, t: ["Mau para pescar", "Razoável para pescar", "Bom para pescar"][fishLv] });
+  const jt = at < 0 ? "Casaco grosso, gorro e luvas" : at < 8 ? "Casaco quente recomendado" : at < 15 ? "Casaco leve recomendado" : at < 21 ? "Camisola ou casaco fino" : at < 27 ? "Roupa leve" : "Roupa muito leve e fresca";
+  out.push({ ic: "jacket", lv: -1, t: jt + (ppNext(8) >= 50 ? " e guarda-chuva" : "") });
+  const dr = (D.temperature_2m_max[0] ?? t) - (D.temperature_2m_min[0] ?? t);
+  const coldLv = (dr >= 12 || (at < 5 && c.relative_humidity_2m > 80)) ? 0 : (dr >= 8 || at < 8) ? 1 : 2;
+  out.push({ ic: "cold", lv: coldLv, t: ["Risco elevado de constipação", "Risco moderado de constipação", "Risco baixo de constipação"][coldLv] });
+  const jLv = (c.relative_humidity_2m > 85 && pTrend < -1) || (at < 3 && c.relative_humidity_2m > 80) ? 0 : (c.relative_humidity_2m > 80 || pTrend < -1.5 || at < 6) ? 1 : 2;
+  out.push({ ic: "joint", lv: jLv, t: ["Probabilidade alta de dores articulares", "Probabilidade moderada de dores articulares", "Probabilidade baixa de dores articulares"][jLv] });
+  const nightIdx = H.time.map((tm, i) => i).filter(i => i >= idx && i < idx + 30 && !H.is_day[i]).slice(0, 8);
+  const ncl = nightIdx.length ? nightIdx.reduce((s, i) => s + H.cloud_cover[i], 0) / nightIdx.length : 100;
+  const mi = moonInfo(); let stLv = ncl < 25 ? 2 : ncl < 55 ? 1 : 0; if(stLv === 2 && mi.illum > .75) stLv = 1;
+  out.push({ ic: "stars", lv: stLv, t: ["Mau para observar estrelas", "Razoável para observar estrelas", "Bom para observar estrelas"][stLv] + (stLv && mi.illum > .75 ? " (lua cheia)" : "") });
+  const rain48 = sum("precipitation", 0, 48), pp48 = mx("precipitation_probability", 0, 48);
+  const carLv = rain48 >= 1 || pp48 >= 60 ? 0 : pp48 >= 35 ? 1 : 2;
+  out.push({ ic: "car", lv: carLv, t: ["Não compensa lavar o carro", "Lavar o carro: talvez", "Bom para lavar o carro"][carLv] });
+  const lLv = ppNext(8) >= 50 || c.relative_humidity_2m > 90 ? 0 : (ppNext(8) >= 25 || c.relative_humidity_2m > 75 || w < 3) ? 1 : 2;
+  out.push({ ic: "laundry", lv: lLv, t: ["Mau para estender roupa", "Roupa seca devagar", "Bom para estender roupa"][lLv] });
+  const fLv = g > 65 || kindOf(c.weather_code) === "storm" || (H.visibility[idx] ?? 1e5) < 800 || kindOf(c.weather_code) === "snow" ? 0 : (g > 45 || kindOf(c.weather_code) === "heavy" || (H.visibility[idx] ?? 1e5) < 3000) ? 1 : 2;
+  out.push({ ic: "plane", lv: fLv, t: ["Probabilidade alta de atrasos de voo", "Probabilidade moderada de atrasos de voo", "Probabilidade baixa de atrasos de voo"][fLv] });
+  const tmax = D.temperature_2m_max[0] ?? t, uvm = D.uv_index_max[0] ?? 0;
+  const bLv = tmax >= 25 && (D.precipitation_probability_max[0] ?? 0) < 25 && w < 25 ? 2 : tmax >= 21 && (D.precipitation_probability_max[0] ?? 0) < 40 ? 1 : 0;
+  out.push({ ic: "beach", lv: bLv, t: ["Dia pouco indicado para praia", "Praia possível, sem grande calor", "Bom dia de praia" + (uvm >= 6 ? " (protetor!)" : "")][bLv] });
+  return out;
+}
+
+function windyURL(p, ov){
+  const q = `lat=${p.lat.toFixed(3)}&lon=${p.lon.toFixed(3)}&detailLat=${p.lat.toFixed(3)}&detailLon=${p.lon.toFixed(3)}&zoom=7&level=surface&overlay=${ov}&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1`;
+  return "https://embed.windy.com/embed2.html?" + q;
+}
+let mapOverlay = store.get("ceu.mapOv", "rain");
+function mountMap(){
+  const fr = $("#windy"); if(!fr || !state.place) return;
+  if(window.__DEMO__){ fr.outerHTML = `<div class="mapph">O mapa interativo do Windy (chuva, radar, vento, nuvens, temperatura) aparece aqui no app.<br>Na demonstração os mapas externos estão bloqueados.</div>`; return; }
+  const url = windyURL(state.place, mapOverlay);
+  if(fr.dataset.src !== url){ fr.dataset.src = url; fr.src = url; }
+}
+
 function renderDetails(fc, idx, aq){
   const c = fc.current, H = fc.hourly, D = fc.daily, out = [];
-  const ws = c.wind_speed_10m, wd = c.wind_direction_10m;
-  out.push(stat("Vento", `${arrow(wd)}${R(ws)}<em>km/h</em>`, `${dirTxt(wd)} · rajadas ${R(c.wind_gusts_10m)}`));
-  const diff = (c.apparent_temperature ?? c.temperature_2m) - c.temperature_2m;
-  out.push(stat("Sensação", `${R(c.apparent_temperature)}°`, diff <= -2 ? (ws > 15 ? "mais frio por causa do vento" : "parece mais frio") : diff >= 2 ? "parece mais quente" : "igual à real"));
-  const dp = H.dew_point_2m[idx];
-  out.push(stat("Humidade", `${R(c.relative_humidity_2m)}<em>%</em>`, `orvalho ${R(dp)}°`));
-  const uv = H.uv_index[idx], uvm = D.uv_index_max[0];
-  out.push(stat("Índice UV", `${isNum(uv) ? Math.round(uv) : "–"}<em>${isNum(uv) ? uvTxt(uv).toLowerCase() : ""}</em>`, isNum(uvm) ? `máx. hoje ${Math.round(uvm)}` : "",
-    `<div class="meter"><i style="width:${Math.min(100, (uv || 0) / 11 * 100)}%;background:linear-gradient(90deg,#5ee67a,#ffcc33,#ff6b3c)"></i></div>`));
-  const pr = c.pressure_msl, ref = idx >= 3 ? H.pressure_msl[idx - 3] : H.pressure_msl[idx], fut = idx >= 3 ? pr : H.pressure_msl[idx + 3];
-  const dpr = isNum(ref) && isNum(fut) ? fut - ref : 0;
-  out.push(stat("Pressão", `${R(pr)}<em>hPa</em>`, dpr > 1 ? "a subir" : dpr < -1 ? "a descer" : "estável"));
-  const vis = H.visibility[idx];
-  out.push(stat("Visibilidade", `${isNum(vis) ? (vis >= 10000 ? Math.round(vis / 1000) : (vis / 1000).toFixed(1)) : "–"}<em>km</em>`, isNum(vis) ? visTxt(vis).toLowerCase() : ""));
-  out.push(stat("Nuvens", `${R(c.cloud_cover)}<em>%</em>`, c.cloud_cover < 15 ? "céu limpo" : c.cloud_cover < 50 ? "algumas nuvens" : c.cloud_cover < 85 ? "muitas nuvens" : "encoberto"));
-  out.push(stat("Chuva hoje", `${isNum(D.precipitation_sum[0]) ? D.precipitation_sum[0].toFixed(1) : "–"}<em>mm</em>`, `amanhã ${isNum(D.precipitation_sum[1]) ? D.precipitation_sum[1].toFixed(1) : "–"} mm`));
-  const sr = D.sunrise[0], ss = D.sunset[0], nowM = minutesOf(c.time);
-  if(sr && ss){
-    const a = minutesOf(sr), b = minutesOf(ss), dl = D.daylight_duration[0];
-    const light = `${Math.floor(dl / 3600)} h ${String(Math.round(dl % 3600 / 60)).padStart(2, "0")} de luz`;
-    const sub = nowM >= a && nowM <= b ? `põe-se em ${Math.floor((b - nowM) / 60)} h ${String((b - nowM) % 60).padStart(2, "0")}` : light;
-    out.push(stat("Nascer e pôr do sol", `${hhmm(sr)}<em>–</em>${hhmm(ss)}`, sub));
-  }
+  /* qualidade do ar + UV */
   if(aq && aq.current && isNum(aq.current.european_aqi)){
     const v = aq.current.european_aqi;
-    out.push(stat("Qualidade do ar", `${Math.round(v)}<em>${aqTxt(v).toLowerCase()}</em>`, `PM2.5 ${R(aq.current.pm2_5)} · PM10 ${R(aq.current.pm10)}`,
-      `<div class="meter"><i style="width:${Math.min(100, v)}%;background:linear-gradient(90deg,#50f0e6,#f0e641,#ff5050)"></i></div>`));
+    out.push(card("leaf", "Qualidade do ar", `<div class="cv">${aqTxt(v)}</div><div class="cs">${Math.round(v)} <em>EAQI · PM2.5 ${R(aq.current.pm2_5)}</em></div>
+      ${scale(v, "linear-gradient(90deg,#50f0e6,#50ccaa 20%,#f0e641 40%,#ff5050 60%,#960032 80%,#7d2181)")}<p>${aqAdv(v)}</p>`));
   }
+  const uv = H.uv_index[idx], uvm = D.uv_index_max[0];
+  out.push(card("sun", "Índice UV", `<div class="cv">${isNum(uv) ? uvTxt(uv) : "–"}</div><div class="cs">${isNum(uv) ? Math.round(uv) : "–"} <em>máx. hoje ${isNum(uvm) ? Math.round(uvm) : "–"}</em></div>
+    ${scale((uv || 0) / 11 * 100, "linear-gradient(90deg,#5ee67a,#ffe14d 30%,#ff9a3c 55%,#ff4d4d 75%,#b05cff)")}<p>${uvAdv2(Math.max(uv || 0, 0))}</p>`));
+  /* sensação + vento */
+  const diff = (c.apparent_temperature ?? c.temperature_2m) - c.temperature_2m, ws = c.wind_speed_10m;
+  const fdesc = diff <= -4 ? "Parece bastante mais frio do que está." : diff <= -1.5 ? (ws > 15 ? "O vento faz parecer mais frio." : "Parece um pouco mais frio.") : diff >= 3 ? "A humidade faz parecer mais quente." : diff >= 1.5 ? "Parece um pouco mais quente." : "Semelhante à temperatura real.";
+  out.push(card("therm", "Sensação térmica", `<div class="cv big">${R(c.apparent_temperature)}°</div><div class="cs">Temperatura real: ${R(c.temperature_2m)}°</div><p>${fdesc}</p>`));
+  const wd = c.wind_direction_10m, bf = beaufort(ws || 0), dname = DIR_PT[dirTxt(wd)] || "";
+  const ticks = Array.from({ length: 48 }, (_, i) => { const a = i * 7.5 * Math.PI / 180, r1 = 37;
+    return `<line x1="${(50 + Math.sin(a) * r1).toFixed(1)}" y1="${(50 - Math.cos(a) * r1).toFixed(1)}" x2="${(50 + Math.sin(a) * 42).toFixed(1)}" y2="${(50 - Math.cos(a) * 42).toFixed(1)}" stroke="rgba(255,255,255,.22)" stroke-width="1"/>`; }).join("");
+  out.push(card("wind", "Vento", `<svg class="comp" viewBox="0 0 100 100">${ticks}
+      ${["N","E","S","O"].map((l, i) => `<text x="${50 + [0,46,0,-46][i]}" y="${50 + [-46,0,46,0][i] + 3.5}" text-anchor="middle" font-size="9" fill="#8f97a5">${l}</text>`).join("")}
+      <g transform="rotate(${(wd || 0) + 180} 50 50)"><line x1="50" y1="22" x2="50" y2="78" stroke="#f2f4f7" stroke-width="2" stroke-linecap="round"/><path d="M50 17l5 8h-10z" fill="#f2f4f7"/><circle cx="50" cy="80" r="3" fill="none" stroke="#f2f4f7" stroke-width="2"/></g>
+      <circle cx="50" cy="50" r="16" fill="#1a1e27"/><text x="50" y="51" text-anchor="middle" font-size="14" fill="#f2f4f7">${bf.n}</text><text x="50" y="60" text-anchor="middle" font-size="7" fill="#8f97a5">Bft</text></svg>
+    <div class="cs">${R(ws)} km/h · rajadas ${R(c.wind_gusts_10m)}</div><p>Vento de ${dname}: ${BF_DESC[bf.n]}.</p>`));
+  /* mapa */
+  const OV = [["rain","Chuva"],["radar","Radar"],["wind","Vento"],["clouds","Nuvens"],["temp","Temp."]];
+  out.push(card("map", "Mapa de precipitação", `<div class="tabs" id="mapTabs">${OV.map(([k, n]) => `<button data-ov="${k}" class="${k === mapOverlay ? "on" : ""}">${n}</button>`).join("")}</div>
+    <iframe id="windy" class="map" loading="lazy" title="Mapa Windy"></iframe>`, "wide"));
+  /* sol + humidade */
+  const sr = D.sunrise[0], ss = D.sunset[0], nowM = minutesOf(c.time);
+  if(sr && ss){
+    const a = minutesOf(sr), b = minutesOf(ss), isD = nowM >= a && nowM <= b;
+    const f = nowM / 1440, W = 160;
+    const curve = t => { const m = t * 1440; const ph = (m - (a + b) / 2) / 1440 * 2 * Math.PI; return 34 - 22 * Math.cos(ph); };
+    const hor = 34 - 22 * Math.cos((a - (a + b) / 2) / 1440 * 2 * Math.PI);
+    let pts = []; for(let k = 0; k <= 40; k++){ const t = k / 40; pts.push([t * W, curve(t)]); }
+    const sx = f * W, sy = curve(f);
+    const big = isD ? `Pôr do sol` : `Nascer do sol`, bigT = isD ? hhmm(ss) : (nowM < a ? hhmm(sr) : hhmm(D.sunrise[1]));
+    out.push(card("rise", big, `<div class="cv big">${bigT}</div>
+      <svg class="suncv" viewBox="0 0 ${W} 60"><line x1="0" x2="${W}" y1="${hor.toFixed(1)}" y2="${hor.toFixed(1)}" stroke="rgba(255,255,255,.12)"/>
+        <path d="${smooth(pts)}" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="1.6"/>
+        <circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="4.5" fill="${isD ? "#ffc24b" : "#5c6472"}"/></svg>
+      <p>${isD ? `Nasceu às ${hhmm(sr)}` : `Põe-se às ${hhmm(ss)}`} · ${Math.floor(D.daylight_duration[0] / 3600)} h ${String(Math.round(D.daylight_duration[0] % 3600 / 60)).padStart(2, "0")} de luz</p>`));
+  }
+  const hm = c.relative_humidity_2m, dp = H.dew_point_2m[idx];
+  out.push(card("drop", "Humidade", `<div class="cv big">${R(hm)}<span>%</span></div><div class="cs">Ponto de orvalho ${R(dp)}°</div>
+    ${scale(hm, "linear-gradient(90deg,#f5d58a,#9fd6a8 45%,#6fb6ff)")}<p>${humDesc(hm)}</p>`));
+  /* visibilidade + pressão */
+  const vis = H.visibility[idx], vkm = isNum(vis) ? vis / 1000 : null;
+  const vp = vkm == null ? 0 : Math.min(100, Math.max(0, Math.log10(Math.max(.1, vkm) / .1) / Math.log10(300) * 100));
+  out.push(card("eye", "Visibilidade", `<div class="cv big">${vkm == null ? "–" : vkm >= 10 ? Math.round(vkm) : vkm.toFixed(1)}<span>km</span></div>
+    <div class="lh"><span>Baixa</span><span>Alta</span></div>${scale(vp, "rgba(255,255,255,.14)")}<p>${isNum(vis) ? visTxt(vis) + "." : ""}</p>`));
+  const pr = c.pressure_msl, pt = (H.pressure_msl[idx] ?? pr) - (H.pressure_msl[Math.max(0, idx - 3)] ?? pr);
+  const pf = Math.max(0, Math.min(1, ((pr || 1013) - 970) / 80)), A0 = -135, A1 = 135;
+  let gt = ""; for(let i = 0; i <= 40; i++){ const ang = (A0 + (A1 - A0) * i / 40) * Math.PI / 180, on = i / 40 <= pf;
+    gt += `<line x1="${(50 + Math.sin(ang) * 33).toFixed(1)}" y1="${(52 - Math.cos(ang) * 33).toFixed(1)}" x2="${(50 + Math.sin(ang) * 41).toFixed(1)}" y2="${(52 - Math.cos(ang) * 41).toFixed(1)}" stroke="${on ? "rgba(255,255,255,.75)" : "rgba(255,255,255,.15)"}" stroke-width="1.6" stroke-linecap="round"/>`; }
+  out.push(card("gauge", "Pressão", `<svg class="gau" viewBox="0 0 100 92">${gt}<text x="50" y="54" text-anchor="middle" font-size="17" fill="#f2f4f7">${R(pr)}</text><text x="50" y="66" text-anchor="middle" font-size="8" fill="#8f97a5">hPa ${pt > 1 ? "↗" : pt < -1 ? "↘" : "→"}</text></svg>
+    <p>${presDesc(pr || 1013)}${pt > 1 ? " A subir." : pt < -1 ? " A descer." : ""}</p>`));
+  /* atividades */
+  const acts = activities(fc, idx);
+  const LC = ["#ff6b6b", "#ffcc33", "#5ee6a8"];
+  out.push(card("bulb", "Atividades e bem-estar", `<div class="acts">${acts.map(a => `<div class="act"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${AI[a.ic]}</svg>
+      <span>${a.lv >= 0 ? `<i style="background:${LC[a.lv]}"></i>` : ""}${esc(a.t)}</span></div>`).join("")}</div>`, "wide"));
+  /* pólen */
   if(aq && aq.hourly){
     const ah = aq.hourly, k = Math.max(0, ah.time.findIndex(t => t.slice(0, 13) === c.time.slice(0, 13)));
-    const P = [["grass_pollen","gramíneas"],["olive_pollen","oliveira"],["birch_pollen","bétula"],["alder_pollen","amieiro"],["mugwort_pollen","artemísia"],["ragweed_pollen","ambrósia"]];
-    const vals = P.map(([id, nm]) => { const m = Math.max(-1, ...(ah[id] || []).slice(k, k + 24).filter(isNum)); return [nm, m]; }).filter(x => x[1] >= 0).sort((a, b) => b[1] - a[1]);
-    if(vals.length){ const l = polLv(vals[0][1]); out.push(stat("Pólen", POL_T[l], l > 0 ? `sobretudo ${vals[0][0]}` : "níveis muito baixos")); }
+    const P = [["grass_pollen","Gramíneas"],["olive_pollen","Oliveira"],["birch_pollen","Bétula"],["alder_pollen","Amieiro"],["mugwort_pollen","Artemísia"],["ragweed_pollen","Ambrósia"]];
+    const vals = P.map(([id, nm]) => [nm, Math.max(-1, ...(ah[id] || []).slice(k, k + 24).filter(isNum))]).filter(x => x[1] >= 0).sort((a, b) => b[1] - a[1]);
+    if(vals.length){
+      const top = polLv(vals[0][1]);
+      out.push(card("flower", "Pólen", `<div class="cv">${POL_T[top]}</div><div class="pl">${vals.slice(0, 3).map(([n, v]) => { const l = polLv(v); return `<div><span>${n}</span><b class="lv${l}">${POL_T[l]}</b></div>`; }).join("")}</div>`));
+    }
   }
-  if(out.length % 2) out.push(stat("Luz do dia amanhã", isNum(D.daylight_duration[1]) ? `${Math.floor(D.daylight_duration[1] / 3600)}<em>h</em> ${String(Math.round(D.daylight_duration[1] % 3600 / 60)).padStart(2, "0")}<em>min</em>` : "–", ""));
-  const box = $("#details"); box.hidden = false;
-  box.innerHTML = `<h2>Condições agora</h2><div class="stats">${out.join("")}</div>`;
+  /* chuva */
+  out.push(card("drop", "Precipitação", `<div class="cv big">${isNum(D.precipitation_sum[0]) ? D.precipitation_sum[0].toFixed(1) : "–"}<span>mm</span></div><div class="cs">hoje · ${isNum(D.precipitation_hours[0]) ? R(D.precipitation_hours[0]) : 0} h de chuva</div>
+    <p>Amanhã: ${isNum(D.precipitation_sum[1]) ? D.precipitation_sum[1].toFixed(1) : "–"} mm, ${isNum(D.precipitation_probability_max[1]) ? D.precipitation_probability_max[1] : "–"}% de probabilidade.</p>`));
+  /* lua */
+  const mi = moonInfo();
+  out.push(card("moon", "Fase da lua", `<div class="moon"><div><div class="cv">${mi.name}</div><div class="cs">${Math.round(mi.illum * 100)}% iluminada</div>
+      <p>${mi.toFull < mi.toNew ? `Lua cheia a ${mi.nextFull} · lua nova a ${mi.nextNew}` : `Lua nova a ${mi.nextNew} · lua cheia a ${mi.nextFull}`}</p></div>${moonSVG(mi.th, 34)}</div>`, "wide"));
+  const box = $("#details"); box.hidden = false; box.innerHTML = out.join("");
+  mountMap();
 }
+document.addEventListener("click", e => {
+  const b = e.target.closest("#mapTabs button"); if(!b) return;
+  mapOverlay = b.dataset.ov; store.set("ceu.mapOv", mapOverlay);
+  document.querySelectorAll("#mapTabs button").forEach(x => x.classList.toggle("on", x === b)); mountMap();
+});
 
 function renderModels(m, fc){
   const box = $("#models");
