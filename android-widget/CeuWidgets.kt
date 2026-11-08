@@ -59,6 +59,7 @@ object CeuWidgetData {
             .append("&hourly=temperature_2m,weather_code,is_day,precipitation_probability")
             .append("&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max")
         if (model.isNotEmpty() && model != "auto") q.append("&models=").append(model)
+        if (s.optString("tu", "c") == "f") q.append("&temperature_unit=fahrenheit")
         return try {
             val con = URL(q.toString()).openConnection() as HttpURLConnection
             con.connectTimeout = 8000
@@ -69,10 +70,21 @@ object CeuWidgetData {
             val j = JSONObject(txt)
             if (!j.has("hourly")) return false
             j.put("_name", s.optString("name", ""))
+            j.put("_sts", s.optLong("ts", 0))
             j.put("_ts", System.currentTimeMillis())
             ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString("fc", j.toString()).apply()
             true
         } catch (e: Exception) { false }
+    }
+
+    /* Só vai à internet se a última atualização for mais antiga que o intervalo escolhido no app
+     * (ou se a localização/unidades mudaram desde então). */
+    fun needsFetch(ctx: Context): Boolean {
+        val s = settings(ctx) ?: return false
+        val c = cached(ctx) ?: return true
+        if (s.optLong("ts", 0) > c.optLong("_sts", 0)) return true
+        val wmin = s.optInt("wmin", 30).coerceAtLeast(30)
+        return System.currentTimeMillis() - c.optLong("_ts", 0) >= wmin * 60_000L - 120_000L
     }
 
     /* ---------- textos e ícones ---------- */
@@ -252,7 +264,7 @@ abstract class CeuWidgetBase : AppWidgetProvider() {
 
     override fun onUpdate(ctx: Context, mgr: AppWidgetManager, ids: IntArray) {
         CeuWidgetData.drawAll(ctx)
-        refreshAsync(ctx)
+        if (CeuWidgetData.needsFetch(ctx)) refreshAsync(ctx)
     }
 
     override fun onReceive(ctx: Context, intent: Intent) {
