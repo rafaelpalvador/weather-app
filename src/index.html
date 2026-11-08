@@ -152,22 +152,6 @@ svg.wi{display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linec
 .moon p{padding-top:8px}
 
 
-/* modelos */
-.mtxt{font-size:13.5px;color:var(--dim);line-height:1.45;margin:-4px 0 12px}
-.leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--dim);margin-bottom:8px}
-.leg span{display:inline-flex;align-items:center;gap:6px}
-.leg i{width:7px;height:7px;border-radius:50%}
-.mchart{width:100%;height:auto;display:block}
-.mt{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:12px}
-.mt th{font-weight:500;color:var(--faint);font-size:11.5px;padding:0 2px 8px;text-align:center}
-.mt th:first-child,.mt td:first-child{text-align:left}
-.mt td{padding:9px 2px;text-align:center;border-top:1px solid var(--line);line-height:1.3}
-.mt td small{display:block;color:var(--rain);font-size:11px}
-.mt td .lo{color:var(--faint)}
-.cf{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:6px;vertical-align:middle}
-.cf.a{background:#5ee6a8}.cf.m{background:#ffcc33}.cf.b{background:#ff6b6b}
-.note{font-size:11.5px;color:var(--faint);margin-top:10px;line-height:1.45}
-
 footer{font-size:11px;color:var(--faint);text-align:center;line-height:1.6;margin-top:28px;padding:0 12px}
 
 .sk{background:linear-gradient(90deg,var(--s1),var(--s2),var(--s1));background-size:200% 100%;animation:sh 1.3s infinite;border-radius:14px}
@@ -241,7 +225,6 @@ footer{font-size:11px;color:var(--faint);text-align:center;line-height:1.6;margi
     <section class="blk" id="nowcast" hidden></section>
     <section class="blk" id="daily"><div class="sk" style="height:260px"></div></section>
     <section class="cards" id="details" hidden></section>
-    <section class="blk" id="models" hidden></section>
     <footer>Open-Meteo (CC BY 4.0) · ECMWF · DWD · NOAA · Météo-France · IPMA · BigDataCloud / OpenStreetMap</footer>
   </main>
 </div>
@@ -262,7 +245,6 @@ footer{font-size:11px;color:var(--faint);text-align:center;line-height:1.6;margi
     <button class="favb" id="favBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3.8l2.5 5.1 5.6.8-4 3.9.9 5.6L12 16.6l-5 2.6.9-5.6-4-3.9 5.6-.8z"/></svg><span id="favTxt">Guardar nos favoritos</span></button>
     <h3 style="margin-top:22px">Fonte da previsão</h3>
     <div id="srcOpts"></div>
-    <p class="txt">A comparação de modelos mostra sempre o ECMWF, ICON, GFS e Météo-France lado a lado: quando concordam, a previsão é mais fiável.</p>
     <p class="txt">A probabilidade de chuva vem dos <i>ensembles</i> do ECMWF, ICON e GFS. Os avisos são os oficiais do IPMA para o distrito mais próximo (só em Portugal).</p>
   </div>
 </div>
@@ -527,12 +509,6 @@ const SOURCES = [
   { id: "auto", name: "Automático (recomendado)", desc: "O Open-Meteo combina os modelos de maior resolução para o teu local (ex.: AROME, ICON) com os modelos globais. Inclui chuva a cada 15 min." },
   { id: "ecmwf_ifs", alt: "ecmwf_ifs025", name: "ECMWF IFS 9 km", desc: "O modelo global europeu, considerado o mais fiável a médio prazo (3–10 dias). Menos detalhe local nas primeiras horas." }
 ];
-const MODELS = [
-  { id: "ecmwf_ifs", alt: "ecmwf_ifs025", name: "ECMWF", color: "#FFB547" },
-  { id: "icon_seamless", name: "ICON", color: "#5EE6A8" },
-  { id: "gfs_seamless", name: "GFS", color: "#86BEFF" },
-  { id: "meteofrance_seamless", name: "Météo-Fr.", color: "#FF85B8" }
-];
 const state = { place: null, data: null, source: store.get("ceu.source", "auto"), busy: false };
 
 /* ---------- localização ---------- */
@@ -612,31 +588,6 @@ async function fetchAQ(p){
     hourly: "alder_pollen,birch_pollen,grass_pollen,olive_pollen,mugwort_pollen,ragweed_pollen" });
   return fetchJSON("https://air-quality-api.open-meteo.com/v1/air-quality?" + q);
 }
-function mURL(p, ids){
-  const q = new URLSearchParams({ latitude: p.lat.toFixed(4), longitude: p.lon.toFixed(4), timezone: "auto", forecast_days: 7,
-    hourly: "temperature_2m,precipitation", daily: "temperature_2m_max,temperature_2m_min,precipitation_sum", models: ids.join(",") });
-  return "https://api.open-meteo.com/v1/forecast?" + q;
-}
-function extract(j, id){
-  const g = (o, v) => (o && (o[`${v}_${id}`] || o[v])) || [];
-  return { t: g(j.hourly, "temperature_2m"), p: g(j.hourly, "precipitation"), tmax: g(j.daily, "temperature_2m_max"), tmin: g(j.daily, "temperature_2m_min"), psum: g(j.daily, "precipitation_sum") };
-}
-async function fetchModels(p){
-  const by = {}; let base = null;
-  try{
-    const j = await fetchJSON(mURL(p, MODELS.map(m => m.id)), 15000); base = j;
-    MODELS.forEach(m => by[m.id] = extract(j, m.id));
-  }catch(e){
-    await Promise.all(MODELS.map(async m => {
-      for(const id of [m.id, m.alt].filter(Boolean)){
-        try{ const j = await fetchJSON(mURL(p, [id])); base = base || j; by[m.id] = extract(j, id); return; }catch(e){}
-      }
-    }));
-  }
-  if(!base) throw new Error("modelos indisponíveis");
-  for(const k in by) if(!by[k].tmax.some(isNum)) delete by[k];
-  return { htime: base.hourly.time, dtime: base.daily.time, by };
-}
 function inPortugal(p){ return p.cc ? p.cc === "PT" : (p.lat > 32 && p.lat < 42.3 && p.lon > -31.5 && p.lon < -6.1); }
 async function fetchWarnings(p){
   if(!inPortugal(p)) return null;
@@ -663,11 +614,10 @@ async function load(place){
   state.place = place; renderHeader(); setSub("A atualizar…", true);
   try{
     const { fc, used } = await fetchForecast(place);
-    state.data = { fc, used, aq: null, models: null, warn: null, ts: Date.now() };
+    state.data = { fc, used, aq: null, warn: null, ts: Date.now() };
     renderAll();
-    const [aq, models, warn] = await Promise.allSettled([fetchAQ(place), fetchModels(place), fetchWarnings(place)]);
+    const [aq, warn] = await Promise.allSettled([fetchAQ(place), fetchWarnings(place)]);
     state.data.aq = aq.status === "fulfilled" ? aq.value : null;
-    state.data.models = models.status === "fulfilled" ? models.value : null;
     state.data.warn = warn.status === "fulfilled" ? warn.value : null;
     renderAll();
     store.set("ceu.cache", { place, data: state.data });
@@ -713,7 +663,7 @@ function renderAll(){
   document.querySelector('meta[name="theme-color"]').content = cur.is_day ? (SKYTOP[skyKey.split("-")[0]] || "#1d5bb8") : "#0b0f1c";
   renderHeader(); renderSub();
   renderHero(fc, idx, d.warn); renderWarnings(d.warn); renderHourly(fc, idx); renderNowcast(fc); renderDaily(fc);
-  renderDetails(fc, idx, d.aq); renderModels(d.models, fc);
+  renderDetails(fc, idx, d.aq);
 }
 
 function nowcastInfo(fc){
@@ -1027,44 +977,6 @@ document.addEventListener("click", e => {
   mapOverlay = b.dataset.ov; store.set("ceu.mapOv", mapOverlay);
   document.querySelectorAll("#mapTabs button").forEach(x => x.classList.toggle("on", x === b)); mountMap();
 });
-
-function renderModels(m, fc){
-  const box = $("#models");
-  if(!m || !Object.keys(m.by).length){ box.hidden = true; return; }
-  box.hidden = false;
-  const list = MODELS.filter(x => m.by[x.id]);
-  const key = fc.current.time.slice(0, 13); let s = m.htime.findIndex(t => t.slice(0, 13) === key); if(s < 0) s = 0;
-  const N = Math.min(72, m.htime.length - s);
-  const Wd = 340, Ht = 130, L = 24, Rr = 4, T = 8, B = 18;
-  let lo = 1e9, hi = -1e9;
-  list.forEach(x => m.by[x.id].t.slice(s, s + N).forEach(v => { if(isNum(v)){ lo = Math.min(lo, v); hi = Math.max(hi, v); } }));
-  lo = Math.floor(lo - 1); hi = Math.ceil(hi + 1);
-  const X = k => L + k / (N - 1) * (Wd - L - Rr), Y = v => T + (1 - (v - lo) / ((hi - lo) || 1)) * (Ht - T - B);
-  let grid = ""; const step = (hi - lo) > 12 ? 5 : (hi - lo) > 6 ? 3 : 2;
-  for(let v = Math.ceil(lo / step) * step; v <= hi; v += step) grid += `<line x1="${L}" x2="${Wd - Rr}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(255,255,255,.06)"/><text x="${L - 6}" y="${Y(v) + 3.5}" text-anchor="end" font-size="9.5" fill="#5c6472">${v}°</text>`;
-  for(let k = 0; k < N; k++){ const t = m.htime[s + k]; if(t.slice(11, 13) === "00") grid += `<line x1="${X(k)}" x2="${X(k)}" y1="${T}" y2="${Ht - B}" stroke="rgba(255,255,255,.08)"/><text x="${X(k) + 4}" y="${Ht - 4}" font-size="9.5" fill="#8f97a5">${WD[dateOf(t).getDay()]}</text>`; }
-  const lines = list.map(x => { const arr = m.by[x.id].t.slice(s, s + N), segs = []; let cur = [];
-    arr.forEach((v, k) => { if(isNum(v)) cur.push([X(k), Y(v)]); else if(cur.length){ segs.push(cur); cur = []; } }); if(cur.length) segs.push(cur);
-    return segs.map(sg => `<path d="${smooth(sg)}" fill="none" stroke="${x.color}" stroke-width="${x.id === "ecmwf_ifs" ? 2 : 1.3}" stroke-linecap="round"/>`).join(""); }).join("");
-  const days = m.dtime.slice(0, 7);
-  const conf = days.map((_, i) => {
-    const mx = list.map(x => m.by[x.id].tmax[i]).filter(isNum), ps = list.map(x => m.by[x.id].psum[i]).filter(isNum);
-    if(mx.length < 2) return null;
-    const spread = Math.max(...mx) - Math.min(...mx), wet = ps.filter(v => v >= 1).length, agree = wet === 0 || wet === ps.length;
-    return spread <= 2 && agree ? "a" : spread <= 4 ? "m" : "b";
-  });
-  const rows = days.map((d, i) => `<tr><td>${i === 0 ? "Hoje" : WD[dateOf(d).getDay()]}${conf[i] ? `<i class="cf ${conf[i]}"></i>` : ""}</td>${list.map(x => {
-      const b = m.by[x.id], mx = b.tmax[i], mn = b.tmin[i], p = b.psum[i];
-      return `<td>${isNum(mx) ? `${R(mx)}° <span class="lo">${R(mn)}°</span>${isNum(p) && p >= .1 ? `<small>${p < 10 ? p.toFixed(1) : R(p)} mm</small>` : ""}` : `<span class="lo">–</span>`}</td>`; }).join("")}</tr>`).join("");
-  const c3 = conf.slice(0, 3).filter(Boolean);
-  const txt = !c3.length ? "" : c3.every(v => v === "a") ? "Os modelos concordam nos próximos 3 dias: previsão sólida." :
-    c3.includes("b") ? "Os modelos divergem nos próximos dias: a previsão ainda pode mudar." : "Concordância razoável; alguns detalhes ainda incertos.";
-  box.innerHTML = `<h2>Comparação de modelos</h2>${txt ? `<div class="mtxt">${txt}</div>` : ""}
-    <div class="leg">${list.map(x => `<span><i style="background:${x.color}"></i>${x.name}</span>`).join("")}</div>
-    <svg class="mchart" viewBox="0 0 ${Wd} ${Ht}">${grid}${lines}</svg>
-    <table class="mt"><thead><tr><th></th>${list.map(x => `<th>${x.name}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table>
-    <div class="note"><i class="cf a"></i> concordam &nbsp; <i class="cf m"></i> diferenças moderadas &nbsp; <i class="cf b"></i> divergem</div>`;
-}
 
 /* ---------- favoritos e pesquisa ---------- */
 const favs = () => store.get("ceu.favs", []);
