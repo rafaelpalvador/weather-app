@@ -191,6 +191,31 @@ body.glass .seg button.on{background:rgba(255,255,255,.92);color:#141821}
 body.glass .item{border-bottom-color:rgba(255,255,255,.12)}
 body.glass .h-temp{text-shadow:0 2px 30px rgba(0,0,0,.25)}
 
+
+/* topo: temperatura no canto (estilo Samsung) */
+.h-a,.h-b{display:flex;flex-direction:column;align-items:center}
+.h-hl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+.h-hl i{width:1px;height:12px;background:rgba(255,255,255,.4)}
+.hero{text-shadow:0 1px 3px rgba(0,0,0,.28),0 2px 22px rgba(0,0,0,.3)!important}
+body.corner .top{display:flex;gap:8px}
+body.corner .ttl{order:-1;flex:1;text-align:left}
+body.corner #cityBtn{order:1} body.corner #setBtn{order:2}
+body.corner .city{font-size:21px}
+body.corner .dots,body.corner .sub{justify-content:flex-start}
+body.corner .dots{margin-left:22px}
+body.corner .hero{align-items:stretch;text-align:left;justify-content:flex-start;padding-top:18px}
+body.corner #heroTxt{align-items:stretch;justify-content:space-between;min-height:calc(58vh - 110px)}
+body.corner.land #heroTxt{min-height:calc(78vh - 120px)}
+body.corner .h-a,body.corner .h-b{align-items:flex-start}
+body.corner .h-temp{font-size:124px;margin-left:-8px}
+body.corner .h-cond{font-size:22px;font-weight:500;margin-top:6px}
+body.corner .h-cond .wi{width:24px;height:24px}
+body.corner .h-hl{justify-content:flex-start;font-size:16px;font-weight:500}
+body.corner .h-sum{margin-top:12px}
+body.land .hero{min-height:calc(78vh - 70px)!important}
+body.land .shade{background:linear-gradient(180deg,rgba(0,0,0,.2) 0%,rgba(0,0,0,0) 18%,rgba(0,0,0,0) 74%,rgba(12,14,19,.55) 86%,rgba(12,14,19,.88) 100%)!important}
+body.land.glass .shade{background:linear-gradient(180deg,rgba(0,0,0,.18) 0%,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 76%,rgba(6,8,14,.35) 100%)!important}
+
 /* cartões */
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
 .cd{background:rgba(19,22,30,.66);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-radius:var(--r);padding:14px 14px 16px;display:flex;flex-direction:column;min-height:176px;min-width:0}
@@ -335,7 +360,7 @@ const $ = s => document.querySelector(s);
 const isNum = v => typeof v === "number" && isFinite(v);
 const R = v => isNum(v) ? Math.round(v) : "–";
 /* definições guardadas */
-const CFG0 = { units: { t: "c", w: "kmh", p: "mm", pr: "hpa" }, sync: 15, wsync: 30, anim: "on", scene: "land", style: "normal", person: true, design: "classic", wstyle: "classic", hidden: [], hiAcc: false, wplace: "gps", showGps: true };
+const CFG0 = { units: { t: "c", w: "kmh", p: "mm", pr: "hpa" }, sync: 15, wsync: 30, anim: "on", scene: "land", style: "normal", layout: "corner", person: true, design: "classic", wstyle: "classic", hidden: [], hiAcc: false, wplace: "gps", showGps: true };
 const cfg = (() => { const c = store0("ceu.cfg") || {}; return { ...CFG0, ...c, units: { ...CFG0.units, ...(c.units || {}) } }; })();
 function store0(k){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; }catch(e){ return null; } }
 function saveCfg(){ try{ localStorage.setItem("ceu.cfg", JSON.stringify(cfg)); }catch(e){} }
@@ -503,132 +528,177 @@ const Sky = (() => {
     ctx.fill();
   }
 
-  /* ---------- paisagem (lago, montanhas, prado) ---------- */
+
+  /* ---------- paisagem realista (lago, montanhas, prado) ---------- */
   let land = null;
   const hx = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
   const mixc = (a, b, f) => { const A = hx(a), B = hx(b); return "#" + A.map((v, i) => Math.round(v + (B[i] - v) * f).toString(16).padStart(2, "0")).join(""); };
   const rgba = (h, a) => { const [r, g, b] = hx(h); return `rgba(${r},${g},${b},${a})`; };
+  const PAL3 = {
+    "clear-day": ["#2a66b8", "#6aa3d9", "#d3e6f3"], "partly-day": ["#3767a3", "#7ba2cb", "#cdd9e6"], "cloudy-day": ["#56626f", "#8a95a3", "#bcc4ce"],
+    "rain-day": ["#37424f", "#5d6a7a", "#8a95a2"], "storm-day": ["#1e1b2a", "#3a354e", "#5a556f"], "snow-day": ["#687a92", "#a6b5c7", "#e0e6ee"], "fog-day": ["#78808b", "#a3aab3", "#ccd1d7"],
+    "clear-night": ["#040918", "#122043", "#2c3d6b"], "partly-night": ["#060b19", "#17223e", "#2d3858"], "cloudy-night": ["#0c0f16", "#1e242f", "#323a48"],
+    "rain-night": ["#080c12", "#19212c", "#2b3543"], "storm-night": ["#060509", "#1a1626", "#2e2840"], "snow-night": ["#111927", "#2b3951", "#4b5b76"], "fog-night": ["#101318", "#262a31", "#3b4048"]
+  };
   function landPal(){
     const k = P.kind, night = !P.day, wet = ["rain", "heavy", "drizzle", "storm"].includes(k), snow = k === "snow";
     const dull = wet || k === "cloudy" || k === "fog";
     const m = (P.month ?? new Date().getMonth());
     const season = m <= 1 || m === 11 ? "w" : m <= 4 ? "sp" : m <= 7 ? "su" : "au";
-    const G = { sp: ["#6fbf52", "#2f6b2c"], su: ["#9bb84e", "#4f6a26"], au: ["#97a04a", "#4c5a24"], w: ["#7c9458", "#3c4f2c"] }[season];
-    let p = {
-      mFar: "#86a9cc", mNear: "#557d9e", lakeT: "#62acdd", lakeB: "#2b6fa8",
-      g1: G[0], g2: G[1], flowers: season === "sp" || season === "su", season
-    };
-    if(dull) p = { ...p, mFar: "#7f8c9b", mNear: "#5a6876", lakeT: "#71899a", lakeB: "#3b5162", g1: mixc(G[0], "#6b7a6a", .45), g2: mixc(G[1], "#2c3630", .4), flowers: false };
-    if(k === "storm") p = { ...p, mFar: "#4d4a63", mNear: "#35334a", lakeT: "#3f4a5c", lakeB: "#20283a", g1: "#4a5a44", g2: "#222c22" };
-    if(snow) p = { ...p, mFar: "#c9d5e3", mNear: "#9fb0c4", lakeT: "#8fa6bd", lakeB: "#5b7189", g1: "#eef3f8", g2: "#b9c6d4", flowers: false };
-    if(night){ const n = c => mixc(c, "#070b18", snow ? .55 : .7); p = { ...p, mFar: n(p.mFar), mNear: n(p.mNear), lakeT: n(p.lakeT), lakeB: n(p.lakeB), g1: n(p.g1), g2: n(p.g2), flowers: false }; }
+    const G = { sp: ["#7cc35a", "#3f7f34", "#24502a"], su: ["#a6bd57", "#5f7f2f", "#33491f"], au: ["#a7a654", "#6d7432", "#3a4220"], w: ["#86a062", "#4d6a3c", "#2b3d27"] }[season];
+    const sky = (PAL3[P.sky] || PAL3["cloudy-day"]);
+    let p = { hzc: sky[2], m1: "#9db8d4", m2: "#6e90b0", m3: "#3f6683", lakeT: "#5ea6d6", lakeB: "#1d5a8c", g1: G[0], g2: G[1], g3: G[2], bush: "#2c4a2e", flowers: season === "sp" || season === "su", season };
+    if(dull) p = { ...p, m1: "#9aa5b1", m2: "#76838f", m3: "#4f5d69", lakeT: "#7a8e9c", lakeB: "#34495a", g1: mixc(G[0], "#7a8775", .45), g2: mixc(G[1], "#3d4840", .4), g3: mixc(G[2], "#232a25", .4), bush: "#2f3b33", flowers: false };
+    if(k === "storm") p = { ...p, m1: "#58546c", m2: "#433f56", m3: "#2c2a3d", lakeT: "#454f61", lakeB: "#1b2232", g1: "#516247", g2: "#30402d", g3: "#1c261b", bush: "#1a231c" };
+    if(snow) p = { ...p, m1: "#dfe6ee", m2: "#bac7d6", m3: "#8798ad", lakeT: "#98aec4", lakeB: "#566c85", g1: "#f2f5f9", g2: "#cfd8e3", g3: "#a3b0c0", bush: "#5d6c66", flowers: false };
+    if(night){ const n = c => mixc(c, "#070b18", snow ? .55 : .72); for(const key of ["m1", "m2", "m3", "lakeT", "lakeB", "g1", "g2", "g3", "bush"]) p[key] = n(p[key]); p.flowers = false; }
+    p.m1 = mixc(p.m1, p.hzc, .35); p.m2 = mixc(p.m2, p.hzc, .15);
     return p;
   }
-  function ridgeFn(base, amp){
-    const ph = Array.from({ length: 5 }, () => Math.random() * 6.28);
-    return x => base - amp * (.5 * Math.sin(x * .0042 + ph[0]) + .32 * Math.sin(x * .011 + ph[1]) + .16 * Math.sin(x * .026 + ph[2]) + .07 * Math.sin(x * .061 + ph[3]) + .04 * Math.sin(x * .13 + ph[4]));
+  function ridgeFn(base, amp, sharp){
+    const ph = Array.from({ length: 6 }, () => Math.random() * 6.28);
+    return x => { let v = .5 * Math.sin(x * .0038 + ph[0]) + .3 * Math.sin(x * .0095 + ph[1]) + .16 * Math.sin(x * .023 + ph[2]) + .08 * Math.sin(x * .055 + ph[3]) + .04 * Math.sin(x * .12 + ph[4]);
+      if(sharp) v = 1 - Math.abs(v) * 1.6; return base - amp * v; };
   }
   function buildLand(){
-    const pal = landPal(), hz = Math.round(H * .54), lb = Math.round(H * .615);
+    const pal = landPal(), hz = Math.round(H * .545), lb = Math.round(H * .625);
     const mk = (w, h) => { const c = document.createElement("canvas"); c.width = Math.round(w * DPR); c.height = Math.round(h * DPR); const x = c.getContext("2d"); x.setTransform(DPR, 0, 0, DPR, 0, 0); return [c, x]; };
-    /* montanhas */
-    const [mc, mx] = mk(W, hz);
-    const far = ridgeFn(hz - H * .05, H * .06), near = ridgeFn(hz - H * .012, H * .035);
-    const range = (fn, col, snowCap) => {
-      mx.beginPath(); mx.moveTo(0, hz); for(let x = 0; x <= W; x += 4) mx.lineTo(x, fn(x)); mx.lineTo(W, hz); mx.closePath();
-      const g = mx.createLinearGradient(0, hz - H * .12, 0, hz); g.addColorStop(0, col); g.addColorStop(1, mixc(col, pal.lakeT, .35));
-      mx.fillStyle = g; mx.fill();
-      if(snowCap){ mx.save(); mx.clip(); mx.fillStyle = rgba("#ffffff", P.day ? .75 : .3); for(let x = 0; x <= W; x += 3){ const y = fn(x); if(y < hz - H * .07) mx.fillRect(x, y, 3, (hz - H * .07 - y) * .6 + 2); } mx.restore(); }
+    /* montanhas em 3 planos, com perspetiva atmosférica e luz lateral */
+    const [mc, mx] = mk(W, hz + 2);
+    const layer = (fn, col, shadeK, snowCap) => {
+      mx.beginPath(); mx.moveTo(0, hz + 2); for(let x = 0; x <= W; x += 3) mx.lineTo(x, fn(x)); mx.lineTo(W, hz + 2); mx.closePath();
+      const g = mx.createLinearGradient(0, hz - H * .16, 0, hz); g.addColorStop(0, mixc(col, "#ffffff", .06)); g.addColorStop(1, mixc(col, pal.hzc, .45)); mx.fillStyle = g; mx.fill();
+      mx.save(); mx.clip();
+      const sg = mx.createLinearGradient(0, 0, W, 0); sg.addColorStop(0, `rgba(10,20,40,${.1 * shadeK})`); sg.addColorStop(.75, "rgba(255,250,235,0)"); sg.addColorStop(.78, `rgba(255,248,230,${P.day ? .06 * shadeK : 0})`); sg.addColorStop(1, `rgba(10,20,40,${.05 * shadeK})`);
+      mx.fillStyle = sg; mx.fillRect(0, 0, W, hz + 2);
+      for(let i = 0; i < 18; i++){ const x = Math.random() * W, y = fn(x) + (hz - fn(x)) * Math.random() * .6, r = 20 + Math.random() * 50;
+        const rg2 = mx.createRadialGradient(x, y, 0, x, y, r); rg2.addColorStop(0, `rgba(15,25,45,${.06 * shadeK})`); rg2.addColorStop(1, "rgba(15,25,45,0)"); mx.fillStyle = rg2; mx.fillRect(x - r, y - r, r * 2, r * 2); }
+      if(snowCap){ mx.fillStyle = rgba("#ffffff", P.day ? .8 : .35); for(let x = 0; x <= W; x += 2){ const y = fn(x), lim = hz - H * .085; if(y < lim) mx.fillRect(x, y, 2, (lim - y) * (.45 + .25 * Math.sin(x * .2)) + 1); } }
+      mx.restore();
     };
-    range(far, pal.mFar, P.kind === "snow" || (pal.season === "w" && P.day));
-    range(near, pal.mNear, P.kind === "snow");
-    /* reflexo */
-    const [rc, rx] = mk(W, lb - hz);
-    rx.save(); rx.translate(0, lb - hz); rx.scale(1, -1); rx.globalAlpha = .38; rx.filter = "blur(2px)";
-    rx.drawImage(mc, 0, 0, mc.width, mc.height, 0, (lb - hz) - hz * .7, W, hz * .7); rx.restore();
-    /* prado */
-    const [gc, gx] = mk(W, H - lb + 10);
-    const top = x => 6 + 8 * Math.sin(x * .006 + 1) + 4 * Math.sin(x * .021);
-    gx.beginPath(); gx.moveTo(0, top(0)); for(let x = 0; x <= W; x += 4) gx.lineTo(x, top(x)); gx.lineTo(W, H); gx.lineTo(0, H); gx.closePath();
-    const gg = gx.createLinearGradient(0, 0, 0, H * .4); gg.addColorStop(0, pal.g1); gg.addColorStop(1, pal.g2);
+    layer(ridgeFn(hz - H * .07, H * .05, false), pal.m1, .6, pal.season === "w" || P.kind === "snow");
+    layer(ridgeFn(hz - H * .045, H * .04, false), pal.m2, 1, P.kind === "snow");
+    layer(ridgeFn(hz - H * .012, H * .02, false), pal.m3, 1.2, false);
+    const hzg = mx.createLinearGradient(0, hz - H * .05, 0, hz); hzg.addColorStop(0, rgba(pal.hzc, 0)); hzg.addColorStop(1, rgba(pal.hzc, P.day ? .35 : .15));
+    mx.fillStyle = hzg; mx.fillRect(0, hz - H * .05, W, H * .05 + 2);
+    /* reflexo: céu do horizonte + montanhas invertidas */
+    const LH = lb - hz;
+    const [rc, rx] = mk(W, LH);
+    const rg = rx.createLinearGradient(0, 0, 0, LH); rg.addColorStop(0, pal.lakeT); rg.addColorStop(1, pal.lakeB); rx.fillStyle = rg; rx.fillRect(0, 0, W, LH);
+    rx.save(); rx.globalAlpha = .55; rx.translate(0, 0); rx.scale(1, -1); rx.drawImage(mc, 0, 0, mc.width, mc.height, 0, -hz * .62, W, hz * .62); rx.restore();
+    const dk = rx.createLinearGradient(0, 0, 0, LH); dk.addColorStop(0, "rgba(0,10,25,0)"); dk.addColorStop(1, "rgba(0,10,25,.35)"); rx.fillStyle = dk; rx.fillRect(0, 0, W, LH);
+    /* margem com arbustos */
+    const [bc, bx] = mk(W, 40);
+    for(let i = 0; i < W / 3; i++){ const x = Math.random() * W, edge = Math.min(x, W - x) / W, r = 3 + Math.random() * 6 + (edge < .2 ? 6 * (1 - edge * 5) : 0);
+      const y = 34 - Math.random() * 6 - (edge < .2 ? (1 - edge * 5) * 12 : 0); const c = mixc(pal.bush, pal.g2, Math.random() * .4);
+      const g = bx.createRadialGradient(x - r * .3, y - r * .4, 0, x, y, r); g.addColorStop(0, mixc(c, "#ffffff", P.day ? .12 : .03)); g.addColorStop(1, c);
+      bx.fillStyle = g; bx.beginPath(); bx.arc(x, y, r, 0, 7); bx.fill(); }
+    /* prado pintado */
+    const GH = H - lb + 10;
+    const [gc, gx] = mk(W, GH);
+    const top = x => 9 + 5 * Math.sin(x * .006 + 1) + 3 * Math.sin(x * .021);
+    gx.beginPath(); gx.moveTo(0, top(0)); for(let x = 0; x <= W; x += 3) gx.lineTo(x, top(x)); gx.lineTo(W, GH); gx.lineTo(0, GH); gx.closePath();
+    const gg = gx.createLinearGradient(0, 0, 0, H * .35); gg.addColorStop(0, pal.g1); gg.addColorStop(.45, pal.g2); gg.addColorStop(1, pal.g3);
     gx.fillStyle = gg; gx.fill(); gx.save(); gx.clip();
-    for(let i = 0; i < 2600; i++){ const x = Math.random() * W, y = top(x) + Math.pow(Math.random(), 1.6) * H * .38;
-      gx.fillStyle = rgba(Math.random() < .5 ? pal.g1 : pal.g2, .25 + Math.random() * .3); gx.fillRect(x, y, 1.2, 2 + Math.random() * 3); }
-    if(pal.flowers) for(let i = 0; i < 90; i++){ const x = Math.random() * W, y = top(x) + 4 + Math.random() * H * .1;
-      gx.fillStyle = ["#fff6d8", "#ffd35a", "#ff9bb3", "#c9a7ff"][i % 4]; gx.beginPath(); gx.arc(x, y, .9 + Math.random() * 1.2, 0, 7); gx.fill(); }
+    for(let i = 0; i < 26; i++){ const x = Math.random() * W, y = top(x) + Math.random() * H * .25, r = 30 + Math.random() * 80;
+      const g = gx.createRadialGradient(x, y, 0, x, y, r); const light = Math.random() < .55;
+      g.addColorStop(0, light ? rgba("#fff6d0", P.day ? .1 : .03) : "rgba(0,20,0,.14)"); g.addColorStop(1, "rgba(0,0,0,0)"); gx.fillStyle = g; gx.fillRect(x - r, y - r, r * 2, r * 2); }
+    for(let i = 0; i < 4200; i++){ const x = Math.random() * W, d = Math.pow(Math.random(), 1.4), y = top(x) + d * H * .32, s = .6 + d * 2.2;
+      gx.strokeStyle = rgba(Math.random() < .5 ? pal.g1 : (Math.random() < .5 ? pal.g2 : pal.g3), .22 + Math.random() * .3); gx.lineWidth = .6 + d * .8;
+      gx.beginPath(); gx.moveTo(x, y); gx.lineTo(x + (Math.random() - .5) * 2 * s, y - (2 + Math.random() * 4) * s); gx.stroke(); }
+    if(pal.flowers) for(let i = 0; i < 140; i++){ const x = Math.random() * W, d = Math.random(), y = top(x) + 6 + d * H * .14, r = .6 + d * 1.6;
+      gx.fillStyle = ["#fff8e4", "#ffd55e", "#ff9fb6", "#c9a9ff", "#ffffff"][i % 5]; gx.beginPath(); gx.arc(x, y, r, 0, 7); gx.fill(); }
+    const vg = gx.createLinearGradient(0, H * .12, 0, GH); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,.35)"); gx.fillStyle = vg; gx.fillRect(0, 0, W, GH);
     gx.restore();
-    gx.strokeStyle = rgba("#ffffff", P.day ? .22 : .08); gx.lineWidth = 1.2; gx.beginPath(); for(let x = 0; x <= W; x += 4) x ? gx.lineTo(x, top(x) + .5) : gx.moveTo(x, top(x) + .5); gx.stroke();
-    const blades = Array.from({ length: Math.round(W / 2.6) }, () => { const x = Math.random() * W; return { x, y: lb + top(x) + Math.random() * H * .07, h: 8 + Math.random() * 18, p: Math.random() * 6.28, c: Math.random() < .5 ? pal.g1 : mixc(pal.g1, pal.g2, .5) }; }).sort((a, b) => a.y - b.y);
-    const glints = Array.from({ length: 36 }, () => ({ x: Math.random() * W, y: hz + 2 + Math.random() * (lb - hz - 4), l: 6 + Math.random() * 22, p: Math.random() * 6.28 }));
-    land = { pal, hz, lb, mc, rc, gc, blades, glints, ripples: [], top };
+    const blades = [];
+    for(let i = 0; i < W / 1.8; i++){ const x = Math.random() * W; blades.push({ x, y: lb + top(x) + Math.random() * H * .05, h: 6 + Math.random() * 10, w: .9, p: Math.random() * 6.28, c: Math.random() < .5 ? pal.g1 : mixc(pal.g1, pal.g2, .5) }); }
+    for(let i = 0; i < W / 5; i++){ const x = Math.random() * W; blades.push({ x, y: lb + H * (.08 + Math.random() * .1), h: 22 + Math.random() * 30, w: 1.6, p: Math.random() * 6.28, c: Math.random() < .5 ? pal.g2 : pal.g3, tip: pal.flowers && Math.random() < .12 ? ["#ffd55e", "#fff8e4", "#ff9fb6"][i % 3] : null }); }
+    blades.sort((a, b) => a.y - b.y);
+    const glints = Array.from({ length: 40 }, () => ({ x: Math.random() * W, y: hz + 2 + Math.random() * (LH - 4), l: 6 + Math.random() * 26, p: Math.random() * 6.28 }));
+    land = { pal, hz, lb, LH, mc, rc, bc, gc, blades, glints, ripples: [], top };
   }
   function drawPerson(x, y, h, t, wind){
     const o = P.outfit || {}, night = !P.day, dim = c => night ? mixc(c, "#0a0f1c", .5) : c;
-    const sw = Math.sin(t * .0021 * (1 + wind)) * (2 + wind * 3), sw2 = Math.sin(t * .0033 * (1 + wind) + 1) * (1.5 + wind * 2);
+    const sw = Math.sin(t * .0019 * (1 + wind)) * (2 + wind * 4), sw2 = Math.sin(t * .0031 * (1 + wind) + 1) * (1.5 + wind * 2.5);
     ctx.save(); ctx.translate(x, y);
-    ctx.fillStyle = "rgba(0,0,0,.22)"; ctx.beginPath(); ctx.ellipse(0, 0, h * .14, h * .025, 0, 0, 7); ctx.fill();
+    const sh = ctx.createRadialGradient(0, 0, 0, 0, 0, h * .16); sh.addColorStop(0, "rgba(0,0,0,.3)"); sh.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = sh; ctx.beginPath(); ctx.ellipse(0, 0, h * .16, h * .03, 0, 0, 7); ctx.fill();
     const pants = dim(o.pants || "#3d3a40");
-    ctx.fillStyle = pants; ctx.fillRect(-h * .055, -h * .36, h * .045, h * .35); ctx.fillRect(h * .012, -h * .36, h * .045, h * .35);
-    ctx.fillStyle = dim("#2a2522"); ctx.fillRect(-h * .06, -h * .02, h * .055, h * .025); ctx.fillRect(h * .01, -h * .02, h * .055, h * .025);
-    const coat = dim(o.coat || "#b88a4e"), hem = -h * (o.long ? .27 : .42);
-    const g = ctx.createLinearGradient(-h * .12, 0, h * .14, 0); g.addColorStop(0, mixc(coat, "#000000", .18)); g.addColorStop(.6, coat); g.addColorStop(1, mixc(coat, "#ffffff", .08));
+    const lg = ctx.createLinearGradient(-h * .06, 0, h * .06, 0); lg.addColorStop(0, mixc(pants, "#000000", .3)); lg.addColorStop(1, pants);
+    ctx.fillStyle = lg; ctx.beginPath(); ctx.moveTo(-h * .055, -h * .44); ctx.lineTo(-h * .045, -h * .02); ctx.lineTo(-h * .012, -h * .02); ctx.lineTo(-h * .005, -h * .44); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(h * .005, -h * .44); ctx.lineTo(h * .016, -h * .02); ctx.lineTo(h * .048, -h * .02); ctx.lineTo(h * .055, -h * .44); ctx.fill();
+    ctx.fillStyle = dim("#2a2522"); ctx.beginPath(); ctx.ellipse(-h * .03, -h * .012, h * .028, h * .012, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.ellipse(h * .033, -h * .012, h * .028, h * .012, 0, 0, 7); ctx.fill();
+    const coat = dim(o.coat || "#b88a4e"), hem = -h * (o.long ? .25 : .43);
+    const g = ctx.createLinearGradient(-h * .12, 0, h * .14, 0); g.addColorStop(0, mixc(coat, "#000000", .28)); g.addColorStop(.55, coat); g.addColorStop(1, mixc(coat, "#fff4dc", P.day ? .18 : .04));
     ctx.fillStyle = g; ctx.beginPath();
-    ctx.moveTo(-h * .085, -h * .8); ctx.quadraticCurveTo(-h * .11, -h * .6, -h * .115 + sw2 * .2, hem);
-    ctx.quadraticCurveTo(0, hem + h * .02, h * .12 + sw, hem + sw2 * .5);
-    ctx.quadraticCurveTo(h * .1, -h * .6, h * .085, -h * .8); ctx.quadraticCurveTo(0, -h * .84, -h * .085, -h * .8); ctx.fill();
-    if(o.long){ ctx.fillStyle = mixc(coat, "#000000", .1); ctx.beginPath(); ctx.moveTo(h * .07, -h * .55); ctx.quadraticCurveTo(h * .15 + sw, -h * .42, h * .17 + sw * 1.6, hem + sw2); ctx.lineTo(h * .1 + sw * .6, hem + 2); ctx.fill(); }
-    ctx.strokeStyle = mixc(coat, "#000000", .22); ctx.lineWidth = h * .045; ctx.lineCap = "round";
-    ctx.beginPath(); ctx.moveTo(-h * .095, -h * .76); ctx.lineTo(-h * .12, -h * .5); ctx.stroke();
-    if(!o.umbrella){ ctx.beginPath(); ctx.moveTo(h * .095, -h * .76); ctx.lineTo(h * .12, -h * .5); ctx.stroke(); }
-    if(o.scarf){ ctx.fillStyle = dim(o.scarfc || "#c9503c"); ctx.fillRect(-h * .07, -h * .83, h * .14, h * .045);
-      ctx.beginPath(); ctx.moveTo(h * .05, -h * .8); ctx.quadraticCurveTo(h * .14 + sw, -h * .78 + sw2, h * .2 + sw * 1.5, -h * .74 + sw2); ctx.lineTo(h * .19 + sw * 1.4, -h * .71 + sw2); ctx.quadraticCurveTo(h * .12, -h * .74, h * .05, -h * .77); ctx.fill(); }
-    ctx.fillStyle = dim("#e2b493"); ctx.fillRect(-h * .025, -h * .86, h * .05, h * .04);
-    const hair = dim(o.hair || "#2b211c");
-    ctx.fillStyle = hair; ctx.beginPath(); ctx.arc(0, -h * .91, h * .068, 0, 7); ctx.fill();
-    if(o.longHair){ ctx.beginPath(); ctx.moveTo(-h * .06, -h * .9); ctx.quadraticCurveTo(-h * .07, -h * .78, -h * .04, -h * .74); ctx.lineTo(h * .05 + sw * .6, -h * .74 + sw2 * .3); ctx.quadraticCurveTo(h * .08 + sw * .4, -h * .82, h * .06, -h * .9); ctx.fill(); }
-    if(o.hat === "beanie"){ ctx.fillStyle = dim(o.hatc || "#d5544a"); ctx.beginPath(); ctx.arc(0, -h * .925, h * .07, Math.PI, 0); ctx.fill(); ctx.fillRect(-h * .072, -h * .93, h * .144, h * .022); }
-    if(o.hat === "sun"){ ctx.fillStyle = dim("#e9d7a8"); ctx.beginPath(); ctx.ellipse(0, -h * .955, h * .13, h * .025, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(0, -h * .96, h * .06, Math.PI, 0); ctx.fill(); }
+    ctx.moveTo(-h * .075, -h * .79); ctx.quadraticCurveTo(-h * .1, -h * .62, -h * .11 + sw2 * .2, hem);
+    ctx.quadraticCurveTo(-h * .02, hem + h * .025, h * .1 + sw * .8, hem + sw2 * .4);
+    ctx.quadraticCurveTo(h * .09, -h * .62, h * .075, -h * .79); ctx.quadraticCurveTo(0, -h * .83, -h * .075, -h * .79); ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,.18)"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-h * .02, -h * .7); ctx.quadraticCurveTo(-h * .03, -h * .5, -h * .045, hem + 4); ctx.moveTo(h * .03, -h * .66); ctx.quadraticCurveTo(h * .04, -h * .5, h * .05 + sw * .4, hem + 3); ctx.stroke();
+    if(o.long){ ctx.fillStyle = mixc(coat, "#000000", .12); ctx.beginPath(); ctx.moveTo(h * .06, -h * .6); ctx.quadraticCurveTo(h * .14 + sw * 1.2, -h * .45, h * .18 + sw * 1.8, hem + sw2); ctx.lineTo(h * .09 + sw * .7, hem + 3); ctx.fill(); }
+    ctx.strokeStyle = mixc(coat, "#000000", .25); ctx.lineWidth = h * .04; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(-h * .08, -h * .75); ctx.quadraticCurveTo(-h * .11, -h * .62, -h * .1, -h * .5); ctx.stroke();
+    if(!o.umbrella){ ctx.beginPath(); ctx.moveTo(h * .08, -h * .75); ctx.quadraticCurveTo(h * .1, -h * .62, h * .085, -h * .5); ctx.stroke(); }
+    if(o.scarf){ ctx.fillStyle = dim(o.scarfc || "#c9503c"); ctx.beginPath(); ctx.ellipse(0, -h * .8, h * .07, h * .025, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(h * .04, -h * .8); ctx.quadraticCurveTo(h * .13 + sw, -h * .78 + sw2, h * .2 + sw * 1.6, -h * .74 + sw2); ctx.lineTo(h * .19 + sw * 1.5, -h * .71 + sw2); ctx.quadraticCurveTo(h * .11, -h * .74, h * .04, -h * .77); ctx.fill(); }
+    ctx.fillStyle = dim("#e2b493"); ctx.fillRect(-h * .02, -h * .85, h * .04, h * .04);
+    const hair = dim(o.hair || "#2b211c"), hg = ctx.createRadialGradient(-h * .02, -h * .93, 0, 0, -h * .9, h * .08);
+    hg.addColorStop(0, mixc(hair, "#ffffff", .12)); hg.addColorStop(1, hair);
+    ctx.fillStyle = hg; ctx.beginPath(); ctx.ellipse(0, -h * .905, h * .058, h * .066, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-h * .055, -h * .9); ctx.quadraticCurveTo(-h * .07, -h * .78, -h * .045, -h * .7);
+    ctx.quadraticCurveTo(h * .02 + sw * .5, -h * .69 + sw2 * .3, h * .06 + sw * .9, -h * .72 + sw2 * .4); ctx.quadraticCurveTo(h * .07, -h * .82, h * .055, -h * .9); ctx.fill();
+    if(o.hat === "beanie"){ ctx.fillStyle = dim(o.hatc || "#d5544a"); ctx.beginPath(); ctx.arc(0, -h * .925, h * .064, Math.PI, 0); ctx.fill(); ctx.fillRect(-h * .066, -h * .93, h * .132, h * .02); }
+    if(o.hat === "sun"){ ctx.fillStyle = dim("#e9d7a8"); ctx.beginPath(); ctx.ellipse(0, -h * .955, h * .12, h * .022, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(0, -h * .96, h * .055, Math.PI, 0); ctx.fill(); }
     if(o.umbrella){
       const tilt = -.15 - wind * .08 + sw * .004;
-      ctx.save(); ctx.translate(h * .1, -h * .55); ctx.rotate(tilt);
-      ctx.strokeStyle = "#2b2b33"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -h * .52); ctx.stroke();
-      ctx.fillStyle = dim(o.umb || "#2f3e5c"); ctx.beginPath(); ctx.moveTo(-h * .26, -h * .44); ctx.quadraticCurveTo(0, -h * .7, h * .26, -h * .44);
-      for(let i = 0; i < 4; i++){ const a = h * (.26 - i * .13), b = a - h * .13; ctx.quadraticCurveTo((a + b) / 2, -h * .49, b, -h * .44); }
+      ctx.save(); ctx.translate(h * .09, -h * .55); ctx.rotate(tilt);
+      ctx.strokeStyle = "#2b2b33"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -h * .5); ctx.stroke();
+      const ug = ctx.createLinearGradient(-h * .25, 0, h * .25, 0); ug.addColorStop(0, mixc(dim(o.umb || "#2f3e5c"), "#000000", .25)); ug.addColorStop(1, dim(o.umb || "#2f3e5c"));
+      ctx.fillStyle = ug; ctx.beginPath(); ctx.moveTo(-h * .25, -h * .43); ctx.quadraticCurveTo(0, -h * .69, h * .25, -h * .43);
+      for(let i = 0; i < 4; i++){ const a = h * (.25 - i * .125), b = a - h * .125; ctx.quadraticCurveTo((a + b) / 2, -h * .475, b, -h * .43); }
       ctx.fill(); ctx.restore();
-      ctx.strokeStyle = mixc(coat, "#000000", .22); ctx.lineWidth = h * .045; ctx.beginPath(); ctx.moveTo(h * .09, -h * .76); ctx.lineTo(h * .1, -h * .56); ctx.stroke();
+      ctx.strokeStyle = mixc(coat, "#000000", .25); ctx.lineWidth = h * .04; ctx.beginPath(); ctx.moveTo(h * .08, -h * .75); ctx.lineTo(h * .09, -h * .56); ctx.stroke();
     }
+    if(P.day && ["clear", "partly"].includes(P.kind)){ ctx.globalCompositeOperation = "lighter"; ctx.strokeStyle = "rgba(255,225,170,.18)"; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(h * .075, -h * .78); ctx.quadraticCurveTo(h * .09, -h * .62, h * .1 + sw * .8, hem); ctx.stroke(); ctx.globalCompositeOperation = "source-over"; }
     ctx.restore();
   }
   function drawLand(t, f, wind){
-    const L = land, pal = L.pal;
-    /* lago */
-    const lg = ctx.createLinearGradient(0, L.hz, 0, L.lb); lg.addColorStop(0, pal.lakeT); lg.addColorStop(1, pal.lakeB);
-    ctx.fillStyle = lg; ctx.fillRect(0, L.hz, W, L.lb - L.hz + 14);
-    ctx.drawImage(L.rc, 0, L.hz, W, L.lb - L.hz);
-    const sx = W * .76, light = P.day ? (["clear", "partly"].includes(P.kind) ? .55 : .2) : (["clear", "partly"].includes(P.kind) ? .45 : .08);
-    L.glints.forEach(g => { const a = (.5 + .5 * Math.sin(t * .0016 + g.p)) * light * (1 - Math.min(1, Math.abs(g.x - sx) / (W * .5)) * .7);
-      g.x += .05 * f * (1 + wind); if(g.x > W + 20) g.x = -20;
-      ctx.fillStyle = `rgba(255,255,255,${a * .5})`; ctx.fillRect(g.x, g.y, g.l, 1); });
-    if(light > .3){ for(let i = 0; i < 9; i++){ const y = L.hz + 3 + i * (L.lb - L.hz) / 10, w = 10 + i * 4, a = (.35 + .3 * Math.sin(t * .003 + i)) * light;
-      ctx.fillStyle = P.day ? `rgba(255,236,190,${a})` : `rgba(230,235,255,${a})`; ctx.fillRect(sx - w / 2 + Math.sin(t * .002 + i) * 3, y, w, 1.2); } }
-    if(["rain", "heavy", "drizzle", "storm"].includes(P.kind)){
-      if(L.ripples.length < 14 && Math.random() < .25 * f) L.ripples.push({ x: Math.random() * W, y: L.hz + 4 + Math.random() * (L.lb - L.hz - 6), r: 0 });
-      ctx.lineWidth = .8; L.ripples = L.ripples.filter(r => { r.r += .35 * f; const a = 1 - r.r / 12; if(a <= 0) return false;
-        ctx.strokeStyle = `rgba(220,235,255,${a * .5})`; ctx.beginPath(); ctx.ellipse(r.x, r.y, r.r, r.r * .25, 0, 0, 7); ctx.stroke(); return true; });
+    const L = land, pal = L.pal, sx = W * .76;
+    /* lago com ondulação: reflexo desenhado em faixas deslocadas */
+    for(let y = 0; y < L.LH; y += 2){
+      const k = y / L.LH, amp = (.6 + k * 4) * (.5 + wind * .6), off = Math.sin(y * .45 + t * .0022) * amp + Math.sin(y * .13 - t * .0013) * amp * .6;
+      ctx.drawImage(L.rc, 0, y * DPR, L.rc.width, 2 * DPR, off - 12, L.hz + y, W + 24, 2.2);
     }
-    if(P.kind === "fog" || (P.warm > .3 && P.day)){ const mg = ctx.createLinearGradient(0, L.hz - 14, 0, L.lb); mg.addColorStop(0, "rgba(230,235,240,0)"); mg.addColorStop(.4, `rgba(230,235,240,${P.kind === "fog" ? .35 : .12})`); mg.addColorStop(1, "rgba(230,235,240,0)"); ctx.fillStyle = mg; ctx.fillRect(0, L.hz - 14, W, L.lb - L.hz + 14); }
-    /* montanhas por cima do lago */
-    ctx.drawImage(L.mc, 0, 0, W, L.hz);
-    /* prado + relva a ondular */
-    ctx.drawImage(L.gc, 0, L.lb - 6, W, H - L.lb + 10);
-    const sway = .6 + wind * 1.4;
-    ctx.lineCap = "round";
-    L.blades.forEach((b, i) => { const s = Math.sin(t * .0018 * (1 + wind * .6) + b.p + b.x * .01) * sway * (b.h / 14) * 3;
-      ctx.strokeStyle = rgba(b.c, P.day ? .85 : .6); ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.quadraticCurveTo(b.x + s * .3, b.y - b.h * .6, b.x + s, b.y - b.h); ctx.stroke(); });
-    if(P.person) drawPerson(W * .84, L.lb + H * .05, H * .135, t, Math.min(2, (P.wind || 0) / 20));
+    const light = P.day ? (["clear", "partly"].includes(P.kind) ? .6 : .18) : (["clear", "partly"].includes(P.kind) ? .45 : .06);
+    L.glints.forEach(g => { const a = (.5 + .5 * Math.sin(t * .0016 + g.p)) * light * (1 - Math.min(1, Math.abs(g.x - sx) / (W * .55)) * .75);
+      g.x += .05 * f * (1 + wind); if(g.x > W + 20) g.x = -20;
+      ctx.fillStyle = `rgba(255,255,255,${a * .45})`; ctx.fillRect(g.x, g.y, g.l, 1); });
+    if(light > .3){ for(let i = 0; i < 14; i++){ const y = L.hz + 2 + i * L.LH / 15, w = 8 + i * 5, a = (.3 + .3 * Math.sin(t * .003 + i * 1.7)) * light;
+      ctx.fillStyle = P.day ? `rgba(255,238,200,${a})` : `rgba(230,236,255,${a})`; ctx.fillRect(sx - w / 2 + Math.sin(t * .002 + i) * 4, y, w, 1.3); } }
+    if(["rain", "heavy", "drizzle", "storm"].includes(P.kind)){
+      if(L.ripples.length < 18 && Math.random() < .3 * f) L.ripples.push({ x: Math.random() * W, y: L.hz + 3 + Math.random() * (L.LH - 6), r: 0 });
+      ctx.lineWidth = .8; L.ripples = L.ripples.filter(r => { r.r += .35 * f; const a = 1 - r.r / 12; if(a <= 0) return false;
+        ctx.strokeStyle = `rgba(225,238,255,${a * .5})`; ctx.beginPath(); ctx.ellipse(r.x, r.y, r.r, r.r * .25, 0, 0, 7); ctx.stroke(); return true; });
+    }
+    ctx.drawImage(L.mc, 0, 0, W, L.hz + 2);
+    if(P.kind === "fog" || (P.warm > .3 && P.day)){ const mg = ctx.createLinearGradient(0, L.hz - 18, 0, L.lb); mg.addColorStop(0, "rgba(232,236,242,0)"); mg.addColorStop(.4, `rgba(232,236,242,${P.kind === "fog" ? .4 : .14})`); mg.addColorStop(1, "rgba(232,236,242,0)"); ctx.fillStyle = mg; ctx.fillRect(0, L.hz - 18, W, L.LH + 18); }
+    ctx.drawImage(L.bc, 0, L.lb - 32, W, 40);
+    ctx.drawImage(L.gc, 0, L.lb - 4, W, H - L.lb + 10);
+    const sway = .55 + wind * 1.3; ctx.lineCap = "round";
+    const gust = .5 + .5 * Math.sin(t * .0007);
+    L.blades.forEach(b => { const s = Math.sin(t * .0017 * (1 + wind * .6) + b.p + b.x * .008) * sway * (b.h / 14) * (2.2 + gust);
+      ctx.strokeStyle = rgba(b.c, P.day ? .9 : .65); ctx.lineWidth = b.w; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.quadraticCurveTo(b.x + s * .25, b.y - b.h * .55, b.x + s, b.y - b.h); ctx.stroke();
+      if(b.tip){ ctx.fillStyle = b.tip; ctx.beginPath(); ctx.arc(b.x + s, b.y - b.h, 1.8, 0, 7); ctx.fill(); } });
+    if(P.person) drawPerson(W * .8, L.lb + H * .085, H * .16, t, Math.min(2, (P.wind || 0) / 20));
+    if(P.day && ["clear", "partly"].includes(P.kind)){
+      ctx.save(); ctx.globalCompositeOperation = "lighter";
+      for(let i = 0; i < 5; i++){ const a = (.035 + .02 * Math.sin(t * .0005 + i * 1.3)) * (P.kind === "clear" ? 1 : .6), ang = .35 + i * .16;
+        ctx.fillStyle = `rgba(255,236,200,${a})`; ctx.beginPath(); ctx.moveTo(sx, H * .14); ctx.lineTo(sx - Math.sin(ang) * H, H * .14 + Math.cos(ang) * H); ctx.lineTo(sx - Math.sin(ang + .06) * H, H * .14 + Math.cos(ang + .06) * H); ctx.fill(); }
+      ctx.restore();
+    }
     if(P.warm > 0){ const wg = ctx.createLinearGradient(0, L.hz - H * .2, 0, H); wg.addColorStop(0, `rgba(255,160,80,${.18 * P.warm})`); wg.addColorStop(1, "rgba(255,160,80,0)"); ctx.fillStyle = wg; ctx.fillRect(0, L.hz - H * .2, W, H); }
   }
-
 
   /* ---------- estilo gótico (inspirado em Tim Burton) ---------- */
   const BPAL = {
@@ -785,7 +855,9 @@ const Sky = (() => {
     if(!P) return;
     const dt = Math.min(50, t - (last || t)); last = t; const f = dt / 16.7;
     const [c1, c2] = (P.style === "burton" ? BPAL : PAL)[P.sky] || PAL["cloudy-day"];
-    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, c1); g.addColorStop(.55, c2); g.addColorStop(1, c2);
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    if(P.scene === "land" && P.style !== "burton"){ const [a1, a2, a3] = PAL3[P.sky] || PAL3["cloudy-day"]; g.addColorStop(0, a1); g.addColorStop(.32, a2); g.addColorStop(.545, a3); g.addColorStop(1, a3); }
+    else { g.addColorStop(0, c1); g.addColorStop(.55, c2); g.addColorStop(1, c2); }
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     if(P.warm > 0){ const hg = ctx.createLinearGradient(0, H * .2, 0, H * .58); hg.addColorStop(0, "rgba(255,150,90,0)"); hg.addColorStop(1, `rgba(255,150,90,${.3 * P.warm})`); ctx.fillStyle = hg; ctx.fillRect(0, H * .2, W, H * .4); }
     const k = P.kind, wind = Math.min(2.5, .4 + (P.wind || 0) / 18);
@@ -1133,11 +1205,15 @@ function renderHero(fc, idx, w){
   const ipma = w ? (w.list.length ? "" : ` · <b>sem avisos IPMA</b>`) : "";
   const aqv = aq && aq.current && isNum(aq.current.european_aqi) ? `<span>Ar ${Math.round(aq.current.european_aqi)}</span><i></i>` : "";
   $("#heroTxt").innerHTML = `
-    <div class="h-temp">${RT(c.temperature_2m)}<sup>°</sup></div>
-    <div class="h-hl">Máx. ${RT(D.temperature_2m_max[0])}° · Mín. ${RT(D.temperature_2m_min[0])}°</div>
-    <div class="h-cond">${icon(c.weather_code, c.is_day)}<span>${esc(condTxt(c.weather_code, c.is_day))}</span><i></i>${aqv}<span>Sensação ${RT(c.apparent_temperature)}°</span></div>
-    <div class="h-sum${s.wet ? " wet" : ""}">${esc(s.t)}</div>
-    <div class="h-src">Fonte: <b>${src}</b>${ipma}</div>`;
+    <div class="h-a">
+      <div class="h-temp">${RT(c.temperature_2m)}<sup>°</sup></div>
+      <div class="h-cond">${icon(c.weather_code, c.is_day)}<span>${esc(condTxt(c.weather_code, c.is_day))}</span></div>
+    </div>
+    <div class="h-b">
+      <div class="h-hl"><span>↑ ${RT(D.temperature_2m_max[0])}°</span> <span>↓ ${RT(D.temperature_2m_min[0])}°</span> <i></i> <span>Sensação ${RT(c.apparent_temperature)}°</span>${aqv ? ` <i></i> ${aqv.replace("<i></i>", "")}` : ""}</div>
+      <div class="h-sum${s.wet ? " wet" : ""}">${esc(s.t)}</div>
+      <div class="h-src">Fonte: <b>${src}</b>${ipma}</div>
+    </div>`;
 }
 function renderWarnings(w){
   const box = $("#warnings"); box.innerHTML = "";
@@ -1543,6 +1619,7 @@ function renderSettings(){
     <div class="set-sec">Aparência</div>
     <div class="set-row"><div>Design do app</div>${seg("design", [["classic", "Clássico"], ["glass", "Liquid Glass"]], cfg.design)}</div>
     <div class="set-row"><div>Estilo dos widgets<small>Toca em ↻ no widget para aplicar já</small></div>${seg("wstyle", [["classic", "Clássico"], ["glass", "Vidro"]], cfg.wstyle)}</div>
+    <div class="set-row"><div>Posição da temperatura</div>${seg("layout", [["corner", "Canto"], ["center", "Centro"]], cfg.layout)}</div>
     <div class="set-row"><div>Cena de fundo</div>${seg("scene", [["sky", "Só céu"], ["land", "Paisagem"]], cfg.scene)}</div>
     <div class="set-row"><div>Estilo da cena<small>Normal ou gótico, inspirado em Tim Burton</small></div>${seg("style", [["normal", "Normal"], ["burton", "Tim Burton"]], cfg.style)}</div>
     <div class="set-row"><div>Pessoa na paisagem<small>Veste-se conforme o tempo</small></div>${seg("person", [[1, "Sim"], [0, "Não"]], cfg.person ? 1 : 0)}</div>
@@ -1569,7 +1646,7 @@ $("#setBody").addEventListener("click", e => {
     saveCfg(); renderSettings();
     if(k === "showGps"){ if(!cfg.showGps && state.sel < 0 && favs().length){ state.sel = 0; refresh(false); } renderHeader(); }
     if(k === "wsync" || k === "u.t" || k === "wstyle") saveWidget();
-    if(k === "design") applyDesign();
+    if(k === "design" || k === "layout") applyDesign();
     if(k === "sync") setupSync();
     if(state.data) renderAll();
     return;
@@ -1594,7 +1671,7 @@ $("#setBody").addEventListener("change", e => { if(e.target.id === "wplace"){ cf
 })();
 
 /* ---------- arranque ---------- */
-function applyDesign(){ document.body.classList.toggle("glass", cfg.design === "glass"); }
+function applyDesign(){ document.body.classList.toggle("glass", cfg.design === "glass"); document.body.classList.toggle("corner", cfg.layout === "corner"); }
 applyDesign();
 let syncT = 0;
 function setupSync(){
