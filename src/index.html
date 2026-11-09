@@ -29,6 +29,9 @@ html{background:var(--bg)}
 body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--txt);background:transparent;min-height:100vh;
   font-feature-settings:"tnum" 1,"cv11" 1;overscroll-behavior-y:contain;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
 #sky{position:fixed;inset:0;width:100%;height:100%;z-index:-2;display:block}
+body.land .hero{min-height:calc(70vh - 70px)!important}
+body.land .shade{background:linear-gradient(180deg,rgba(0,0,0,.2) 0%,rgba(0,0,0,.04) 24%,rgba(0,0,0,0) 45%,rgba(0,0,0,0) 66%,rgba(12,14,19,.6) 82%,rgba(12,14,19,.88) 100%)!important}
+body.land.glass .shade{background:linear-gradient(180deg,rgba(0,0,0,.18) 0%,rgba(0,0,0,0) 30%,rgba(0,0,0,0) 68%,rgba(6,8,14,.35) 100%)!important}
 .shade{position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:linear-gradient(180deg,rgba(0,0,0,.22) 0%,rgba(0,0,0,.06) 22%,rgba(0,0,0,.1) 40%,rgba(12,14,19,.55) 68%,rgba(12,14,19,.88) 100%)}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
@@ -332,7 +335,7 @@ const $ = s => document.querySelector(s);
 const isNum = v => typeof v === "number" && isFinite(v);
 const R = v => isNum(v) ? Math.round(v) : "–";
 /* definições guardadas */
-const CFG0 = { units: { t: "c", w: "kmh", p: "mm", pr: "hpa" }, sync: 15, wsync: 30, anim: "on", design: "classic", wstyle: "classic", hidden: [], hiAcc: false, wplace: "gps", showGps: true };
+const CFG0 = { units: { t: "c", w: "kmh", p: "mm", pr: "hpa" }, sync: 15, wsync: 30, anim: "on", scene: "land", person: true, design: "classic", wstyle: "classic", hidden: [], hiAcc: false, wplace: "gps", showGps: true };
 const cfg = (() => { const c = store0("ceu.cfg") || {}; return { ...CFG0, ...c, units: { ...CFG0.units, ...(c.units || {}) } }; })();
 function store0(k){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; }catch(e){ return null; } }
 function saveCfg(){ try{ localStorage.setItem("ceu.cfg", JSON.stringify(cfg)); }catch(e){} }
@@ -476,6 +479,7 @@ const Sky = (() => {
     flakes = k === "snow" ? Array.from({ length: 140 }, () => ({ x: rnd(0, W), y: rnd(0, H), r: rnd(1, 3.2), v: rnd(.4, 1.3), p: rnd(0, 6) })) : [];
     stars = !day && cover < 85 ? Array.from({ length: 140 }, () => ({ x: rnd(0, W), y: rnd(0, H * .6), r: rnd(.3, 1.2), p: rnd(0, 6), s: rnd(.5, 2) })) : [];
     fogs = k === "fog" ? Array.from({ length: 5 }, (_, i) => ({ x: rnd(-W, 0), y: H * (.15 + i * .12), w: W * rnd(1.4, 2.2), h: H * rnd(.1, .18), v: rnd(.1, .3) })) : [];
+    if(P.scene === "land"){ buildLand(); clouds.forEach(c => { if(c.y > H * .32) c.y = rnd(-.08, .3) * H; }); } else land = null;
   }
   function sun(t, behind){
     const x = W * .76, y = H * .14, R = Math.max(W, H) * .55;
@@ -498,12 +502,140 @@ const Sky = (() => {
     ctx.ellipse(x, y, rx, r, 0, Math.PI / 2, -Math.PI / 2, wax ? !gib : gib);
     ctx.fill();
   }
+
+  /* ---------- paisagem (lago, montanhas, prado) ---------- */
+  let land = null;
+  const hx = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const mixc = (a, b, f) => { const A = hx(a), B = hx(b); return "#" + A.map((v, i) => Math.round(v + (B[i] - v) * f).toString(16).padStart(2, "0")).join(""); };
+  const rgba = (h, a) => { const [r, g, b] = hx(h); return `rgba(${r},${g},${b},${a})`; };
+  function landPal(){
+    const k = P.kind, night = !P.day, wet = ["rain", "heavy", "drizzle", "storm"].includes(k), snow = k === "snow";
+    const dull = wet || k === "cloudy" || k === "fog";
+    const m = (P.month ?? new Date().getMonth());
+    const season = m <= 1 || m === 11 ? "w" : m <= 4 ? "sp" : m <= 7 ? "su" : "au";
+    const G = { sp: ["#6fbf52", "#2f6b2c"], su: ["#9bb84e", "#4f6a26"], au: ["#97a04a", "#4c5a24"], w: ["#7c9458", "#3c4f2c"] }[season];
+    let p = {
+      mFar: "#86a9cc", mNear: "#557d9e", lakeT: "#62acdd", lakeB: "#2b6fa8",
+      g1: G[0], g2: G[1], flowers: season === "sp" || season === "su", season
+    };
+    if(dull) p = { ...p, mFar: "#7f8c9b", mNear: "#5a6876", lakeT: "#71899a", lakeB: "#3b5162", g1: mixc(G[0], "#6b7a6a", .45), g2: mixc(G[1], "#2c3630", .4), flowers: false };
+    if(k === "storm") p = { ...p, mFar: "#4d4a63", mNear: "#35334a", lakeT: "#3f4a5c", lakeB: "#20283a", g1: "#4a5a44", g2: "#222c22" };
+    if(snow) p = { ...p, mFar: "#c9d5e3", mNear: "#9fb0c4", lakeT: "#8fa6bd", lakeB: "#5b7189", g1: "#eef3f8", g2: "#b9c6d4", flowers: false };
+    if(night){ const n = c => mixc(c, "#070b18", snow ? .55 : .7); p = { ...p, mFar: n(p.mFar), mNear: n(p.mNear), lakeT: n(p.lakeT), lakeB: n(p.lakeB), g1: n(p.g1), g2: n(p.g2), flowers: false }; }
+    return p;
+  }
+  function ridgeFn(base, amp){
+    const ph = Array.from({ length: 5 }, () => Math.random() * 6.28);
+    return x => base - amp * (.5 * Math.sin(x * .0042 + ph[0]) + .32 * Math.sin(x * .011 + ph[1]) + .16 * Math.sin(x * .026 + ph[2]) + .07 * Math.sin(x * .061 + ph[3]) + .04 * Math.sin(x * .13 + ph[4]));
+  }
+  function buildLand(){
+    const pal = landPal(), hz = Math.round(H * .54), lb = Math.round(H * .615);
+    const mk = (w, h) => { const c = document.createElement("canvas"); c.width = Math.round(w * DPR); c.height = Math.round(h * DPR); const x = c.getContext("2d"); x.setTransform(DPR, 0, 0, DPR, 0, 0); return [c, x]; };
+    /* montanhas */
+    const [mc, mx] = mk(W, hz);
+    const far = ridgeFn(hz - H * .05, H * .06), near = ridgeFn(hz - H * .012, H * .035);
+    const range = (fn, col, snowCap) => {
+      mx.beginPath(); mx.moveTo(0, hz); for(let x = 0; x <= W; x += 4) mx.lineTo(x, fn(x)); mx.lineTo(W, hz); mx.closePath();
+      const g = mx.createLinearGradient(0, hz - H * .12, 0, hz); g.addColorStop(0, col); g.addColorStop(1, mixc(col, pal.lakeT, .35));
+      mx.fillStyle = g; mx.fill();
+      if(snowCap){ mx.save(); mx.clip(); mx.fillStyle = rgba("#ffffff", P.day ? .75 : .3); for(let x = 0; x <= W; x += 3){ const y = fn(x); if(y < hz - H * .07) mx.fillRect(x, y, 3, (hz - H * .07 - y) * .6 + 2); } mx.restore(); }
+    };
+    range(far, pal.mFar, P.kind === "snow" || (pal.season === "w" && P.day));
+    range(near, pal.mNear, P.kind === "snow");
+    /* reflexo */
+    const [rc, rx] = mk(W, lb - hz);
+    rx.save(); rx.translate(0, lb - hz); rx.scale(1, -1); rx.globalAlpha = .38; rx.filter = "blur(2px)";
+    rx.drawImage(mc, 0, 0, mc.width, mc.height, 0, (lb - hz) - hz * .7, W, hz * .7); rx.restore();
+    /* prado */
+    const [gc, gx] = mk(W, H - lb + 10);
+    const top = x => 6 + 8 * Math.sin(x * .006 + 1) + 4 * Math.sin(x * .021);
+    gx.beginPath(); gx.moveTo(0, top(0)); for(let x = 0; x <= W; x += 4) gx.lineTo(x, top(x)); gx.lineTo(W, H); gx.lineTo(0, H); gx.closePath();
+    const gg = gx.createLinearGradient(0, 0, 0, H * .4); gg.addColorStop(0, pal.g1); gg.addColorStop(1, pal.g2);
+    gx.fillStyle = gg; gx.fill(); gx.save(); gx.clip();
+    for(let i = 0; i < 2600; i++){ const x = Math.random() * W, y = top(x) + Math.pow(Math.random(), 1.6) * H * .38;
+      gx.fillStyle = rgba(Math.random() < .5 ? pal.g1 : pal.g2, .25 + Math.random() * .3); gx.fillRect(x, y, 1.2, 2 + Math.random() * 3); }
+    if(pal.flowers) for(let i = 0; i < 90; i++){ const x = Math.random() * W, y = top(x) + 4 + Math.random() * H * .1;
+      gx.fillStyle = ["#fff6d8", "#ffd35a", "#ff9bb3", "#c9a7ff"][i % 4]; gx.beginPath(); gx.arc(x, y, .9 + Math.random() * 1.2, 0, 7); gx.fill(); }
+    gx.restore();
+    gx.strokeStyle = rgba("#ffffff", P.day ? .22 : .08); gx.lineWidth = 1.2; gx.beginPath(); for(let x = 0; x <= W; x += 4) x ? gx.lineTo(x, top(x) + .5) : gx.moveTo(x, top(x) + .5); gx.stroke();
+    const blades = Array.from({ length: Math.round(W / 2.6) }, () => { const x = Math.random() * W; return { x, y: lb + top(x) + Math.random() * H * .07, h: 8 + Math.random() * 18, p: Math.random() * 6.28, c: Math.random() < .5 ? pal.g1 : mixc(pal.g1, pal.g2, .5) }; }).sort((a, b) => a.y - b.y);
+    const glints = Array.from({ length: 36 }, () => ({ x: Math.random() * W, y: hz + 2 + Math.random() * (lb - hz - 4), l: 6 + Math.random() * 22, p: Math.random() * 6.28 }));
+    land = { pal, hz, lb, mc, rc, gc, blades, glints, ripples: [], top };
+  }
+  function drawPerson(x, y, h, t, wind){
+    const o = P.outfit || {}, night = !P.day, dim = c => night ? mixc(c, "#0a0f1c", .5) : c;
+    const sw = Math.sin(t * .0021 * (1 + wind)) * (2 + wind * 3), sw2 = Math.sin(t * .0033 * (1 + wind) + 1) * (1.5 + wind * 2);
+    ctx.save(); ctx.translate(x, y);
+    ctx.fillStyle = "rgba(0,0,0,.22)"; ctx.beginPath(); ctx.ellipse(0, 0, h * .14, h * .025, 0, 0, 7); ctx.fill();
+    const pants = dim(o.pants || "#3d3a40");
+    ctx.fillStyle = pants; ctx.fillRect(-h * .055, -h * .36, h * .045, h * .35); ctx.fillRect(h * .012, -h * .36, h * .045, h * .35);
+    ctx.fillStyle = dim("#2a2522"); ctx.fillRect(-h * .06, -h * .02, h * .055, h * .025); ctx.fillRect(h * .01, -h * .02, h * .055, h * .025);
+    const coat = dim(o.coat || "#b88a4e"), hem = -h * (o.long ? .27 : .42);
+    const g = ctx.createLinearGradient(-h * .12, 0, h * .14, 0); g.addColorStop(0, mixc(coat, "#000000", .18)); g.addColorStop(.6, coat); g.addColorStop(1, mixc(coat, "#ffffff", .08));
+    ctx.fillStyle = g; ctx.beginPath();
+    ctx.moveTo(-h * .085, -h * .8); ctx.quadraticCurveTo(-h * .11, -h * .6, -h * .115 + sw2 * .2, hem);
+    ctx.quadraticCurveTo(0, hem + h * .02, h * .12 + sw, hem + sw2 * .5);
+    ctx.quadraticCurveTo(h * .1, -h * .6, h * .085, -h * .8); ctx.quadraticCurveTo(0, -h * .84, -h * .085, -h * .8); ctx.fill();
+    if(o.long){ ctx.fillStyle = mixc(coat, "#000000", .1); ctx.beginPath(); ctx.moveTo(h * .07, -h * .55); ctx.quadraticCurveTo(h * .15 + sw, -h * .42, h * .17 + sw * 1.6, hem + sw2); ctx.lineTo(h * .1 + sw * .6, hem + 2); ctx.fill(); }
+    ctx.strokeStyle = mixc(coat, "#000000", .22); ctx.lineWidth = h * .045; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(-h * .095, -h * .76); ctx.lineTo(-h * .12, -h * .5); ctx.stroke();
+    if(!o.umbrella){ ctx.beginPath(); ctx.moveTo(h * .095, -h * .76); ctx.lineTo(h * .12, -h * .5); ctx.stroke(); }
+    if(o.scarf){ ctx.fillStyle = dim(o.scarfc || "#c9503c"); ctx.fillRect(-h * .07, -h * .83, h * .14, h * .045);
+      ctx.beginPath(); ctx.moveTo(h * .05, -h * .8); ctx.quadraticCurveTo(h * .14 + sw, -h * .78 + sw2, h * .2 + sw * 1.5, -h * .74 + sw2); ctx.lineTo(h * .19 + sw * 1.4, -h * .71 + sw2); ctx.quadraticCurveTo(h * .12, -h * .74, h * .05, -h * .77); ctx.fill(); }
+    ctx.fillStyle = dim("#e2b493"); ctx.fillRect(-h * .025, -h * .86, h * .05, h * .04);
+    const hair = dim(o.hair || "#2b211c");
+    ctx.fillStyle = hair; ctx.beginPath(); ctx.arc(0, -h * .91, h * .068, 0, 7); ctx.fill();
+    if(o.longHair){ ctx.beginPath(); ctx.moveTo(-h * .06, -h * .9); ctx.quadraticCurveTo(-h * .07, -h * .78, -h * .04, -h * .74); ctx.lineTo(h * .05 + sw * .6, -h * .74 + sw2 * .3); ctx.quadraticCurveTo(h * .08 + sw * .4, -h * .82, h * .06, -h * .9); ctx.fill(); }
+    if(o.hat === "beanie"){ ctx.fillStyle = dim(o.hatc || "#d5544a"); ctx.beginPath(); ctx.arc(0, -h * .925, h * .07, Math.PI, 0); ctx.fill(); ctx.fillRect(-h * .072, -h * .93, h * .144, h * .022); }
+    if(o.hat === "sun"){ ctx.fillStyle = dim("#e9d7a8"); ctx.beginPath(); ctx.ellipse(0, -h * .955, h * .13, h * .025, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(0, -h * .96, h * .06, Math.PI, 0); ctx.fill(); }
+    if(o.umbrella){
+      const tilt = -.15 - wind * .08 + sw * .004;
+      ctx.save(); ctx.translate(h * .1, -h * .55); ctx.rotate(tilt);
+      ctx.strokeStyle = "#2b2b33"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -h * .52); ctx.stroke();
+      ctx.fillStyle = dim(o.umb || "#2f3e5c"); ctx.beginPath(); ctx.moveTo(-h * .26, -h * .44); ctx.quadraticCurveTo(0, -h * .7, h * .26, -h * .44);
+      for(let i = 0; i < 4; i++){ const a = h * (.26 - i * .13), b = a - h * .13; ctx.quadraticCurveTo((a + b) / 2, -h * .49, b, -h * .44); }
+      ctx.fill(); ctx.restore();
+      ctx.strokeStyle = mixc(coat, "#000000", .22); ctx.lineWidth = h * .045; ctx.beginPath(); ctx.moveTo(h * .09, -h * .76); ctx.lineTo(h * .1, -h * .56); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function drawLand(t, f, wind){
+    const L = land, pal = L.pal;
+    /* lago */
+    const lg = ctx.createLinearGradient(0, L.hz, 0, L.lb); lg.addColorStop(0, pal.lakeT); lg.addColorStop(1, pal.lakeB);
+    ctx.fillStyle = lg; ctx.fillRect(0, L.hz, W, L.lb - L.hz + 14);
+    ctx.drawImage(L.rc, 0, L.hz, W, L.lb - L.hz);
+    const sx = W * .76, light = P.day ? (["clear", "partly"].includes(P.kind) ? .55 : .2) : (["clear", "partly"].includes(P.kind) ? .45 : .08);
+    L.glints.forEach(g => { const a = (.5 + .5 * Math.sin(t * .0016 + g.p)) * light * (1 - Math.min(1, Math.abs(g.x - sx) / (W * .5)) * .7);
+      g.x += .05 * f * (1 + wind); if(g.x > W + 20) g.x = -20;
+      ctx.fillStyle = `rgba(255,255,255,${a * .5})`; ctx.fillRect(g.x, g.y, g.l, 1); });
+    if(light > .3){ for(let i = 0; i < 9; i++){ const y = L.hz + 3 + i * (L.lb - L.hz) / 10, w = 10 + i * 4, a = (.35 + .3 * Math.sin(t * .003 + i)) * light;
+      ctx.fillStyle = P.day ? `rgba(255,236,190,${a})` : `rgba(230,235,255,${a})`; ctx.fillRect(sx - w / 2 + Math.sin(t * .002 + i) * 3, y, w, 1.2); } }
+    if(["rain", "heavy", "drizzle", "storm"].includes(P.kind)){
+      if(L.ripples.length < 14 && Math.random() < .25 * f) L.ripples.push({ x: Math.random() * W, y: L.hz + 4 + Math.random() * (L.lb - L.hz - 6), r: 0 });
+      ctx.lineWidth = .8; L.ripples = L.ripples.filter(r => { r.r += .35 * f; const a = 1 - r.r / 12; if(a <= 0) return false;
+        ctx.strokeStyle = `rgba(220,235,255,${a * .5})`; ctx.beginPath(); ctx.ellipse(r.x, r.y, r.r, r.r * .25, 0, 0, 7); ctx.stroke(); return true; });
+    }
+    if(P.kind === "fog" || (P.warm > .3 && P.day)){ const mg = ctx.createLinearGradient(0, L.hz - 14, 0, L.lb); mg.addColorStop(0, "rgba(230,235,240,0)"); mg.addColorStop(.4, `rgba(230,235,240,${P.kind === "fog" ? .35 : .12})`); mg.addColorStop(1, "rgba(230,235,240,0)"); ctx.fillStyle = mg; ctx.fillRect(0, L.hz - 14, W, L.lb - L.hz + 14); }
+    /* montanhas por cima do lago */
+    ctx.drawImage(L.mc, 0, 0, W, L.hz);
+    /* prado + relva a ondular */
+    ctx.drawImage(L.gc, 0, L.lb - 6, W, H - L.lb + 10);
+    const sway = .6 + wind * 1.4;
+    ctx.lineCap = "round";
+    L.blades.forEach((b, i) => { const s = Math.sin(t * .0018 * (1 + wind * .6) + b.p + b.x * .01) * sway * (b.h / 14) * 3;
+      ctx.strokeStyle = rgba(b.c, P.day ? .85 : .6); ctx.lineWidth = 1.1; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.quadraticCurveTo(b.x + s * .3, b.y - b.h * .6, b.x + s, b.y - b.h); ctx.stroke(); });
+    if(P.person) drawPerson(W * .84, L.lb + H * .05, H * .135, t, Math.min(2, (P.wind || 0) / 20));
+    if(P.warm > 0){ const wg = ctx.createLinearGradient(0, L.hz - H * .2, 0, H); wg.addColorStop(0, `rgba(255,160,80,${.18 * P.warm})`); wg.addColorStop(1, "rgba(255,160,80,0)"); ctx.fillStyle = wg; ctx.fillRect(0, L.hz - H * .2, W, H); }
+  }
+
   function draw(t){
     if(!P) return;
     const dt = Math.min(50, t - (last || t)); last = t; const f = dt / 16.7;
     const [c1, c2] = PAL[P.sky] || PAL["cloudy-day"];
     const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, c1); g.addColorStop(.55, c2); g.addColorStop(1, c2);
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    if(P.warm > 0){ const hg = ctx.createLinearGradient(0, H * .2, 0, H * .58); hg.addColorStop(0, "rgba(255,150,90,0)"); hg.addColorStop(1, `rgba(255,150,90,${.3 * P.warm})`); ctx.fillStyle = hg; ctx.fillRect(0, H * .2, W, H * .4); }
     const k = P.kind, wind = Math.min(2.5, .4 + (P.wind || 0) / 18);
     stars.forEach(s => { ctx.globalAlpha = .35 + .45 * (.5 + .5 * Math.sin(t * .001 * s.s + s.p)); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill(); });
     ctx.globalAlpha = 1;
@@ -521,6 +653,7 @@ const Sky = (() => {
       ctx.globalAlpha = c.a; ctx.drawImage(c.sp, c.x, c.y, w, c.sp.height * c.s);
     });
     ctx.globalAlpha = 1;
+    if(land) drawLand(t, f, wind);
     fogs.forEach(o => { o.x += o.v * f; if(o.x > W) o.x = -o.w;
       const fg = ctx.createRadialGradient(o.x + o.w / 2, o.y, 0, o.x + o.w / 2, o.y, o.w / 2); fg.addColorStop(0, "rgba(220,224,230,.22)"); fg.addColorStop(1, "rgba(220,224,230,0)");
       ctx.save(); ctx.translate(0, o.y); ctx.scale(1, o.h / o.w * 2); ctx.translate(0, -o.y); ctx.fillStyle = fg; ctx.fillRect(o.x, o.y - o.w / 2, o.w, o.w); ctx.restore(); });
@@ -554,7 +687,7 @@ const Sky = (() => {
   resize();
   return {
     set(p){
-      const key = JSON.stringify([p.sky, p.kind, Math.round(p.cloud / 10), Math.round((p.precip || 0) * 2)]);
+      const key = JSON.stringify([p.sky, p.kind, Math.round(p.cloud / 10), Math.round((p.precip || 0) * 2), p.scene, p.month]);
       P = p; if(key !== lastKey){ lastKey = key; build(); }
       cv.style.display = p.off ? "none" : "";
       if(p.off){ if(raf){ cancelAnimationFrame(raf); raf = 0; } return; }
@@ -777,6 +910,23 @@ function renderHeader(){
   const n = f.length + (cfg.showGps ? 1 : 0);
   $("#dots").innerHTML = n < 2 ? "" : (cfg.showGps ? pin.replace("%", state.sel < 0 ? "on" : "") : "") + f.map((_, i) => `<i class="${i === state.sel ? "on" : ""}"></i>`).join("");
 }
+function outfitOf(c){
+  const at = c.apparent_temperature ?? c.temperature_2m, k = kindOf(c.weather_code);
+  const wet = ["rain", "heavy", "drizzle", "storm"].includes(k) || ((c.precipitation || 0) >= .1 && k !== "snow");
+  let o;
+  if(k === "snow" || at < 6) o = { coat: "#2f4a6b", long: true, scarf: true, scarfc: "#c9503c", hat: "beanie", hatc: "#d8c9a8", pants: "#2b2f3a" };
+  else if(at < 13) o = { coat: "#a8743f", long: true, scarf: at < 9, scarfc: "#e0b04a", pants: "#3a3530" };
+  else if(at < 19) o = { coat: "#4f7a64", long: false, pants: "#3d4352" };
+  else if(at < 26) o = { coat: "#ece6d8", long: false, pants: "#5a6c84" };
+  else o = { coat: "#f2d06b", long: false, pants: "#c9b48a", hat: c.is_day ? "sun" : null };
+  return { ...o, umbrella: wet, umb: "#2f3e5c", longHair: true, hair: "#2b211c" };
+}
+function goldenHour(fc){
+  const D = fc.daily, c = fc.current; if(!D.sunrise[0] || !D.sunset[0]) return 0;
+  const n = minutesOf(c.time), a = minutesOf(D.sunrise[0]), b = minutesOf(D.sunset[0]);
+  const d = Math.min(Math.abs(n - a), Math.abs(n - b));
+  return d > 75 ? 0 : (1 - d / 75) * (["clear", "partly"].includes(kindOf(c.weather_code)) ? 1 : .45);
+}
 function renderAll(){
   const d = state.data; if(!d || !d.fc) return;
   const fc = d.fc, cur = fc.current, H = fc.hourly;
@@ -786,7 +936,8 @@ function renderAll(){
   document.body.dataset.sky = skyKey;
   const nc0 = nowcastInfo(fc);
   try{ Sky.set({ sky: skyKey, kind: kindOf(cur.weather_code), day: !!cur.is_day, cloud: cur.cloud_cover ?? 50, wind: cur.wind_speed_10m,
-    precip: Math.max(cur.precipitation || 0, nc0 ? (nc0[0].v || 0) * 4 : 0, H.precipitation[idx] || 0), moonTh: moonInfo().th, still: cfg.anim === "static", off: cfg.anim === "off" }); }catch(e){ console.error(e); }
+    precip: Math.max(cur.precipitation || 0, nc0 ? (nc0[0].v || 0) * 4 : 0, H.precipitation[idx] || 0), moonTh: moonInfo().th, still: cfg.anim === "static", off: cfg.anim === "off",
+    scene: cfg.scene, person: cfg.person, outfit: outfitOf(cur), warm: goldenHour(fc), month: new Date().getMonth() }); document.body.classList.toggle("land", cfg.scene === "land" && cfg.anim !== "off"); }catch(e){ console.error(e); }
   const SKYTOP = { clear: "#1d5bb8", partly: "#2f5f9e", cloudy: "#465264", rain: "#2a3546", storm: "#1d1a2b", snow: "#5f7491", fog: "#6a727e" };
   document.querySelector('meta[name="theme-color"]').content = cur.is_day ? (SKYTOP[skyKey.split("-")[0]] || "#1d5bb8") : "#0b0f1c";
   renderHeader(); renderSub();
@@ -1239,7 +1390,9 @@ function renderSettings(){
     <div class="set-sec">Aparência</div>
     <div class="set-row"><div>Design do app</div>${seg("design", [["classic", "Clássico"], ["glass", "Liquid Glass"]], cfg.design)}</div>
     <div class="set-row"><div>Estilo dos widgets<small>Toca em ↻ no widget para aplicar já</small></div>${seg("wstyle", [["classic", "Clássico"], ["glass", "Vidro"]], cfg.wstyle)}</div>
-    <div class="set-row"><div>Fundo do céu<small>Estático ou desligado poupa bateria</small></div>${seg("anim", [["on", "Animado"], ["static", "Estático"], ["off", "Desligado"]], cfg.anim)}</div>
+    <div class="set-row"><div>Cena de fundo</div>${seg("scene", [["sky", "Só céu"], ["land", "Paisagem"]], cfg.scene)}</div>
+    <div class="set-row"><div>Pessoa na paisagem<small>Veste-se conforme o tempo</small></div>${seg("person", [[1, "Sim"], [0, "Não"]], cfg.person ? 1 : 0)}</div>
+    <div class="set-row"><div>Animação do fundo<small>Estático ou desligado poupa bateria</small></div>${seg("anim", [["on", "Animado"], ["static", "Estático"], ["off", "Desligado"]], cfg.anim)}</div>
     <div class="set-row" style="display:block"><div style="margin-bottom:10px">Cartões visíveis<small>Toca para mostrar ou esconder</small></div>
       <div class="chips2" id="cardChips">${CARDS.map(([k, l]) => `<button data-card="${k}" class="${cfg.hidden.includes(k) ? "" : "on"}">${l}</button>`).join("")}</div></div>
 
@@ -1257,7 +1410,7 @@ $("#setBody").addEventListener("click", e => {
     const k = b.closest(".seg").dataset.k, v = b.dataset.v;
     if(k.startsWith("u.")) cfg.units[k.slice(2)] = v;
     else if(k === "sync" || k === "wsync") cfg[k] = +v;
-    else if(k === "showGps" || k === "hiAcc") cfg[k] = v === "1";
+    else if(k === "showGps" || k === "hiAcc" || k === "person") cfg[k] = v === "1";
     else cfg[k] = v;
     saveCfg(); renderSettings();
     if(k === "showGps"){ if(!cfg.showGps && state.sel < 0 && favs().length){ state.sel = 0; refresh(false); } renderHeader(); }
