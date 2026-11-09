@@ -2300,6 +2300,72 @@ const Sky = (() => {
     mk("pf-borabora", "PF", "Bora Bora", "Polinésia Francesa", -16.5004, -151.7415, "water quay", (x, W, by, u, lit) => {
       _P(x, [[W * .2, by], [W * .4, by - 160 * u], [W * .46, by - 200 * u], [W * .52, by - 170 * u], [W * .8, by]], "#3f6a3e"); for(let k = 0; k < 7; k++){ const a = W * .05 + k * W * .14; [-1, 1].forEach(sd => _R(x, a + sd * 10 * u, by - 20 * u, 2 * u, 20 * u, "#6b4a34")); _R(x, a - 16 * u, by - 34 * u, 32 * u, 14 * u, "#c9a87a"); _P(x, [[a - 20 * u, by - 34 * u], [a, by - 50 * u], [a + 20 * u, by - 34 * u]], "#8a6a44"); } })
   );
+  /* ===== LÍBANO ===== */
+  const cedar = (x, px, by, u, s, c) => { _R(x, px - 3 * u * s, by - 40 * u * s, 6 * u * s, 40 * u * s, "#5a4232");
+    for(let k = 0; k < 5; k++){ const y = by - (30 + k * 18) * u * s, w = (70 - k * 11) * u * s; x.fillStyle = k % 2 ? c : mixc(c, "#000000", .12); x.beginPath(); x.ellipse(px + (k % 2 ? 4 : -4) * u * s, y, w / 2, 8 * u * s, 0, 0, 7); x.fill(); } };
+  const LBS = "#d9c49a", LBL = "#cbb489";
+  MONUMENTS.push(
+    mk("lb-raouche", "LB", "Rochas dos Pombos (Raouché)", "Beirute", 33.8897, 35.4706, "sea", (x, W, by, u, lit) => {
+      _P(x, [[-10, by], [-10, by - 120 * u], [W * .25, by - 110 * u], [W * .3, by]], "#cbb489"); A.skyline(x, -10, W * .28, by - 110 * u, u, lit, { hmin: 30, hmax: 90, cols: ["#efe6d6", "#e3e8ea"], seed: 81 });
+      const rx = W * .62; x.fillStyle = "#c9a77a"; x.beginPath(); x.moveTo(rx - 90 * u, by); x.lineTo(rx - 84 * u, by - 150 * u); x.quadraticCurveTo(rx - 40 * u, by - 190 * u, rx + 10 * u, by - 170 * u); x.lineTo(rx + 40 * u, by - 120 * u); x.lineTo(rx + 44 * u, by); x.fill();
+      x.save(); x.globalCompositeOperation = "destination-out"; x.beginPath(); x.moveTo(rx - 50 * u, by); x.lineTo(rx - 48 * u, by - 60 * u); x.quadraticCurveTo(rx - 20 * u, by - 100 * u, rx + 8 * u, by - 60 * u); x.lineTo(rx + 10 * u, by); x.fill(); x.restore();
+      _P(x, [[rx - 84 * u, by - 150 * u], [rx - 40 * u, by - 182 * u], [rx + 10 * u, by - 170 * u], [rx - 20 * u, by - 168 * u]], "#6a8a4a"); _P(x, [[rx + 70 * u, by], [rx + 80 * u, by - 70 * u], [rx + 110 * u, by - 80 * u], [rx + 130 * u, by]], "#bf9c6e");
+      for(let k = 0; k < 6; k++) _L(x, rx - 82 * u, by - 130 * u + k * 22 * u, rx + 38 * u, by - 120 * u + k * 20 * u, "rgba(0,0,0,.08)", 2 * u); }),
+    mk("lb-amin", "LB", "Mesquita Mohammad Al-Amin e Catedral de São Jorge", "Beirute", 33.8957, 35.5063, "plaza", (x, W, by, u, lit) => { const c = LBS, b = "#2f72b5", cx = W * .6;
+      A.palace(x, cx, by, u, 220, 70, c, c, lit, { roof: false }); _R(x, cx - 40 * u, by - 100 * u, 80 * u, 30 * u, c); A.roof(x, cx, by - 100 * u, 100 * u, "dome", b, u); [-1, 1].forEach(sd => { _R(x, cx + sd * 72 * u - 16 * u, by - 86 * u, 32 * u, 16 * u, c); A.roof(x, cx + sd * 72 * u, by - 86 * u, 34 * u, "dome", b, u); });
+      [-130, 130].forEach(d => minaret(x, cx + d * u, by, u, 200, c, b)); A.nave(x, W * .02, by, u, 80, 70, "#e3d7bf", "#8a6a4e", lit); A.tower(x, W * .02 + 60 * u, by, u, 26, 120, "#e3d7bf", lit, "pyr", "#8a6a4e"); }),
+    mk("lb-nejmeh", "LB", "Torre do Relógio (Praça Nejmeh)", "Beirute", 33.8968, 35.5047, "plaza", (x, W, by, u, lit) => { const c = "#e3d1ac", cx = W * .56;
+      A.houses(x, -10, W + 10, by, u, lit, { w: 70, h: 100, cols: ["#e3c8a0", "#ead6b4", "#dcbf94"], top: "flat", gap: 10 }); for(let k = 0; k < 6; k++) A.arcade(x, -10 + k * 80 * u, by - 40 * u, 70 * u, 40 * u, 3, "#d4b88c", u);
+      _R(x, cx - 30 * u, by - 20 * u, 60 * u, 20 * u, c); A.tower(x, cx, by - 20 * u, u, 36, 170, c, lit, null); _R(x, cx - 22 * u, by - 222 * u, 44 * u, 32 * u, c); [-1, 1].forEach(sd => _C(x, cx + sd * 0 * u, by - 206 * u, 12 * u, "#f6f2e8"));
+      _C(x, cx, by - 206 * u, 1.5 * u, "#333"); _L(x, cx, by - 206 * u, cx + 7 * u, by - 210 * u, "#333", 1.2 * u); _P(x, [[cx - 22 * u, by - 222 * u], [cx, by - 244 * u], [cx + 22 * u, by - 222 * u]], c); }),
+    mk("lb-zaitunay", "LB", "Zaitunay Bay", "Beirute", 33.9017, 35.4975, "water quay boats", (x, W, by, u, lit) => {
+      A.skyline(x, -10, W + 10, by, u, lit, { hmin: 60, hmax: 190, cols: ["#e3e8ea", "#c2d2da", "#efe6d6", "#9ab8c8"], seed: 83 });
+      for(let k = 0; k < 6; k++){ const a = W * .08 + k * 60 * u; _P(x, [[a, by - 4 * u], [a + 44 * u, by - 4 * u], [a + 38 * u, by + 4 * u], [a + 4 * u, by + 4 * u]], "#f6f6f4"); _R(x, a + 22 * u, by - 70 * u, 2 * u, 66 * u, "#d0d0cc"); } }),
+    mk("lb-baalbek", "LB", "Templos de Baalbek", "Baalbek", 34.0069, 36.2039, "grass mountains", (x, W, by, u, lit) => { const c = "#d9b98a";
+      _R(x, -10, by - 30 * u, W + 20, 30 * u, "#c4a272"); for(let k = 0; k < 6; k++){ const px = W * .12 + k * 26 * u; _R(x, px, by - 220 * u, 16 * u, 190 * u, c); _shade(x, px, by - 220 * u, 16 * u, 190 * u, .3); }
+      _R(x, W * .12 - 6 * u, by - 238 * u, 6 * 26 * u + 2 * u, 20 * u, c); for(let k = 0; k < 12; k++) _R(x, W * .12 - 4 * u + k * 13 * u, by - 234 * u, 6 * u, 6 * u, "rgba(0,0,0,.12)");
+      A.temple(x, W * .72, by - 30 * u, u, 190, 110, 8, "#d4b07e"); }),
+    mk("lb-byblos", "LB", "Castelo e porto de Biblos", "Biblos (Jbeil)", 34.1207, 35.6464, "water quay boats", (x, W, by, u, lit) => { const c = "#cdb88f";
+      A.castle(x, W * .62, by, u, .9, c, c, lit, { towers: [[-90, 80, 30, "cren"], [10, 130, 60, "cren"], [90, 90, 34, "cren"]] }); _R(x, -10, by - 20 * u, W * .35, 20 * u, c);
+      A.houses(x, -10, W * .3, by - 20 * u, u, lit, { w: 34, h: 40, cols: ["#e3d1ac", "#efe3c8"], top: "roof", roof: "#c25a3c" }); }),
+    mk("lb-jeita", "LB", "Gruta de Jeita", "Jeita", 33.9436, 35.6407, "water grass", (x, W, by, u, lit) => {
+      x.fillStyle = "#5a4636"; x.beginPath(); x.moveTo(-10, by); x.lineTo(-10, by - 230 * u); x.quadraticCurveTo(W * .5, by - 250 * u, W + 10, by - 230 * u); x.lineTo(W + 10, by); x.lineTo(W * .9, by);
+      x.quadraticCurveTo(W * .85, by - 180 * u, W * .5, by - 190 * u); x.quadraticCurveTo(W * .15, by - 180 * u, W * .1, by); x.fill();
+      for(let k = 0; k < 16; k++){ const a = W * (.12 + k * .05), l = (20 + (k * 37) % 50) * u, y0 = by - 186 * u + Math.abs(k - 8) * 3 * u; _P(x, [[a - 6 * u, y0], [a, y0 + l], [a + 6 * u, y0]], "#c9a882"); lit.push([a - 3 * u, y0, 6 * u, l * .6]); }
+      [[.25, 60], [.7, 80]].forEach(([p, h]) => _P(x, [[W * p - 10 * u, by], [W * p, by - h * u], [W * p + 10 * u, by]], "#b8966e")); }),
+    mk("lb-harissa", "LB", "Nossa Senhora do Líbano", "Harissa", 33.9817, 35.6517, "water quay", (x, W, by, u, lit) => { const c = "#f3f1ea", cx = W * .55;
+      _P(x, [[-10, by], [-10, by - 120 * u], [W * .3, by - 150 * u], [W * .55, by - 160 * u], [W * .8, by - 130 * u], [W + 10, by - 110 * u], [W + 10, by]], "#5a6a46"); A.trees(x, -10, W + 10, by - 80 * u, u, ["#3f5a36", "#4a6a3e"], 1.1);
+      const y0 = by - 158 * u; _P(x, [[cx - 24 * u, y0], [cx - 16 * u, y0 - 40 * u], [cx + 16 * u, y0 - 40 * u], [cx + 24 * u, y0]], c); _R(x, cx - 12 * u, y0 - 60 * u, 24 * u, 20 * u, c);
+      _P(x, [[cx - 8 * u, y0 - 60 * u], [cx - 6 * u, y0 - 104 * u], [cx + 6 * u, y0 - 104 * u], [cx + 8 * u, y0 - 60 * u]], c); _C(x, cx, y0 - 108 * u, 5 * u, c); _L(x, cx - 2 * u, y0 - 92 * u, cx - 14 * u, y0 - 80 * u, c, 3 * u); _L(x, cx + 2 * u, y0 - 92 * u, cx + 14 * u, y0 - 80 * u, c, 3 * u);
+      _P(x, [[W * .72, y0 + 30 * u], [W * .78, y0 - 30 * u], [W * .84, y0 + 30 * u]], "#d9d2c2"); _R(x, W * .7, y0 + 30 * u, W * .16, 20 * u, "#d9d2c2"); }),
+    mk("lb-cedars", "LB", "Cedros de Deus", "Bsharri", 34.2436, 36.0489, "grass mountains", (x, W, by, u, lit) => {
+      A.mountain(x, W * .5, by - 40 * u, u, 760, 180, "#8a8070", "#f6f7f9"); [[.12, 1.5], [.34, 2.1], [.58, 2.5], [.82, 1.8], [.98, 1.3]].forEach(([p, s]) => cedar(x, W * p, by, u, s, "#2f5a36")); }),
+    mk("lb-qadisha", "LB", "Vale de Qadisha", "Bsharri", 34.2833, 35.95, "grass", (x, W, by, u, lit) => {
+      _P(x, [[-10, by], [-10, by - 240 * u], [W * .3, by - 230 * u], [W * .45, by]], "#7a6a56"); _P(x, [[W * .55, by], [W * .7, by - 230 * u], [W + 10, by - 240 * u], [W + 10, by]], "#6e604e");
+      A.trees(x, W * .35, W * .65, by, u, ["#3f6a36", "#4e7a40"], 1.1); _R(x, W * .08, by - 140 * u, 60 * u, 40 * u, "#d9c49a"); _P(x, [[W * .08, by - 140 * u], [W * .08 + 30 * u, by - 156 * u], [W * .08 + 60 * u, by - 140 * u]], "#b8a07a"); _W(lit, x, W * .08 + 24 * u, by - 126 * u, 12 * u, 18 * u, WIN);
+      cedar(x, W * .82, by - 230 * u, u, .8, "#2f5a36"); A.houses(x, W * .62, W * .95, by - 230 * u, u, lit, { w: 26, h: 24, cols: ["#e3d1ac"], top: "roof", roof: "#c25a3c", gap: 10 }); }),
+    mk("lb-tyre", "LB", "Ruínas romanas de Tiro", "Tiro (Sour)", 33.2705, 35.196, "sea palms", (x, W, by, u, lit) => { const c = "#d4c09a";
+      for(let k = 0; k < 9; k++){ const px = W * .12 + k * 34 * u, h = 90 + ((k * 37) % 5) * 16; if(k === 4) continue; _R(x, px, by - h * u, 12 * u, h * u, k % 2 ? c : "#c9b08a"); _shade(x, px, by - h * u, 12 * u, h * u, .3); }
+      A.arcade(x, W * .55, by - 120 * u, 140 * u, 120 * u, 1, "#c4a878", u); _R(x, -10, by - 6 * u, W + 20, 6 * u, "#bfa880"); }),
+    mk("lb-sidon", "LB", "Castelo do Mar de Sídon", "Sídon (Saida)", 33.5658, 35.3712, "water quay boats", (x, W, by, u, lit) => { const c = "#b8a07a";
+      A.bridge(x, W * .1, W * .5, by - 40 * u, by + 2, u, 4, c); _R(x, W * .5, by - 110 * u, 160 * u, 110 * u, c); _crenel(x, W * .5, by - 110 * u, 160 * u, 9, 8 * u, c); _shade(x, W * .5, by - 110 * u, 160 * u, 110 * u, .25);
+      A.tower(x, W * .5 + 130 * u, by - 110 * u, u, 50, 40, c, lit, "cren"); for(let k = 0; k < 4; k++) _W(lit, x, W * .5 + 16 * u + k * 30 * u, by - 80 * u, 10 * u, 16 * u, "rgba(50,40,30,.6)"); }),
+    mk("lb-beiteddine", "LB", "Palácio de Beiteddine", "Beiteddine", 33.6957, 35.5796, "garden mountains", (x, W, by, u, lit) => { const c = "#e3d1ac", cx = W * .56;
+      A.palace(x, cx, by, u, 320, 80, c, c, lit, { roof: false }); A.arcade(x, cx - 160 * u, by - 40 * u, 320 * u, 40 * u, 11, "#d9c49a", u);
+      for(let k = 0; k < 11; k++){ const a = cx - 160 * u + k * 320 / 11 * u; for(let s = 0; s < 4; s++) _R(x, a + 4 * u + s * 5 * u, by - 34 * u, 3 * u, 3 * u, s % 2 ? "#2a2a2a" : "#f3efe6"); } A.trees(x, cx - 160 * u, cx + 160 * u, by + 2, u, ["#3f6a36"], .8); }),
+    mk("lb-tripoli", "LB", "Cidadela de Trípoli", "Trípoli", 34.4339, 35.8443, "grass city", (x, W, by, u, lit) => { const c = "#b8a07a";
+      A.hill(x, W * .55, by, u, 600, 90, "#8a7a5a"); A.castle(x, W * .56, by - 85 * u, u, 1, c, c, lit, { towers: [[-95, 60, 34, "cren"], [-20, 90, 40, "cren"], [70, 70, 36, "cren"]] });
+      A.houses(x, -10, W + 10, by, u, lit, { w: 30, h: 40, cols: ["#e3d1ac", "#efe3c8", "#d9c49a"], top: "flat" }); minaret(x, W * .14, by, u, 120, "#e3d1ac", "#5f9a86"); }),
+    mk("lb-anjar", "LB", "Ruínas de Anjar", "Anjar", 33.7283, 35.9298, "grass mountains", (x, W, by, u, lit) => { const c = "#cbb489";
+      _R(x, W * .2, by - 70 * u, W * .6, 70 * u, "#b8a07a"); A.arcade(x, W * .2, by - 140 * u, W * .6, 70 * u, 5, c, u); _R(x, W * .2, by - 146 * u, W * .6, 8 * u, c);
+      for(let k = 0; k < 4; k++) _R(x, W * .05 + k * 18 * u, by - 90 * u, 8 * u, 90 * u, c); cedar(x, W * .9, by, u, 1.2, "#3f6a36"); }),
+    mk("lb-batroun", "LB", "Nossa Senhora do Mar", "Batroun", 34.2553, 35.6581, "sea", (x, W, by, u, lit) => { const c = "#e3d7bf", cx = W * .56;
+      _R(x, -10, by - 26 * u, W + 20, 26 * u, "#b8a07a"); for(let k = 0; k < 20; k++) _R(x, k * W / 20, by - 26 * u, W / 20 - 2 * u, 3 * u, "rgba(0,0,0,.12)"); A.nave(x, cx - 50 * u, by - 26 * u, u, 100, 60, c, "#8a6a4e", lit, { rh: .4 });
+      A.tower(x, cx + 50 * u, by - 26 * u, u, 26, 80, c, lit, "pyr", "#8a6a4e"); A.houses(x, -10, cx - 70 * u, by - 26 * u, u, lit, { w: 30, h: 40, cols: ["#e3d1ac", "#efe3c8"], top: "roof", roof: "#c25a3c" }); }),
+    mk("lb-faqra", "LB", "Ponte natural de Faqra", "Kfardebian", 33.9985, 35.8133, "grass mountains", (x, W, by, u, lit) => { const c = "#bfa888";
+      x.fillStyle = c; x.beginPath(); x.moveTo(W * .15, by); x.lineTo(W * .2, by - 150 * u); x.lineTo(W * .85, by - 160 * u); x.lineTo(W * .9, by); x.lineTo(W * .72, by); x.quadraticCurveTo(W * .55, by - 120 * u, W * .35, by); x.fill();
+      for(let k = 0; k < 5; k++) _L(x, W * .2, by - 140 * u + k * 10 * u, W * .85, by - 150 * u + k * 10 * u, "rgba(0,0,0,.1)", 2 * u); _R(x, W * .2, by - 162 * u, W * .65, 8 * u, "#6a7a4a"); })
+  );
   function buildMonument(){
     const M = MONUMENTS.find(m => m.id === P.monument); if(!M){ buildLand(); return; }
     const pal = landPal(), u = H / 1000, snow = P.kind === "snow";
@@ -3137,7 +3203,7 @@ $("#ttl").addEventListener("click", () => $("#cityBtn").click());
 const CCN = { PT: "Portugal", BR: "Brasil", DE: "Alemanha", PL: "Polónia", FR: "França", ES: "Espanha", IT: "Itália", GB: "Reino Unido", IE: "Irlanda", NL: "Países Baixos", BE: "Bélgica", LU: "Luxemburgo", CH: "Suíça", AT: "Áustria", CZ: "Chéquia", SK: "Eslováquia", HU: "Hungria", SI: "Eslovénia", HR: "Croácia", GR: "Grécia", TR: "Turquia", RO: "Roménia", BG: "Bulgária", RS: "Sérvia", BA: "Bósnia", ME: "Montenegro", DK: "Dinamarca", SE: "Suécia", NO: "Noruega", FI: "Finlândia", IS: "Islândia", EE: "Estónia", LV: "Letónia", LT: "Lituânia", UA: "Ucrânia", RU: "Rússia", MT: "Malta", MC: "Mónaco",
   US: "Estados Unidos", CA: "Canadá", MX: "México", GT: "Guatemala", CR: "Costa Rica", PA: "Panamá", CU: "Cuba", PR: "Porto Rico", NI: "Nicarágua", AR: "Argentina", CL: "Chile", PE: "Peru", BO: "Bolívia", CO: "Colômbia", EC: "Equador", VE: "Venezuela", UY: "Uruguai", PY: "Paraguai",
   JP: "Japão", CN: "China", HK: "Hong Kong", TW: "Taiwan", KR: "Coreia do Sul", IN: "Índia", NP: "Nepal", LK: "Sri Lanka", TH: "Tailândia", VN: "Vietname", KH: "Camboja", MY: "Malásia", SG: "Singapura", ID: "Indonésia", PH: "Filipinas", MM: "Myanmar", PK: "Paquistão",
-  AE: "Emirados Árabes Unidos", QA: "Catar", SA: "Arábia Saudita", IL: "Israel", JO: "Jordânia", IR: "Irão", UZ: "Uzbequistão", KZ: "Cazaquistão", AM: "Arménia", AZ: "Azerbaijão",
+  AE: "Emirados Árabes Unidos", QA: "Catar", SA: "Arábia Saudita", IL: "Israel", JO: "Jordânia", LB: "Líbano", IR: "Irão", UZ: "Uzbequistão", KZ: "Cazaquistão", AM: "Arménia", AZ: "Azerbaijão",
   EG: "Egito", MA: "Marrocos", TN: "Tunísia", ZA: "África do Sul", TZ: "Tanzânia", KE: "Quénia", ZW: "Zimbabué", GH: "Gana", ML: "Mali", MG: "Madagáscar", NA: "Namíbia", DZ: "Argélia", ET: "Etiópia",
   AU: "Austrália", NZ: "Nova Zelândia", FJ: "Fiji", PF: "Polinésia Francesa" };
 function monOptions(){ const L = Sky.list(), by = {}; L.forEach(m => (by[m.cc] = by[m.cc] || []).push(m)); const top = ["PT", "BR", "DE", "PL"];
