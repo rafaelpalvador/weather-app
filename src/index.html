@@ -360,7 +360,7 @@ const $ = s => document.querySelector(s);
 const isNum = v => typeof v === "number" && isFinite(v);
 const R = v => isNum(v) ? Math.round(v) : "–";
 /* definições guardadas */
-const CFG0 = { units: { t: "c", w: "kmh", p: "mm", pr: "hpa" }, sync: 15, wsync: 30, anim: "on", scene: "monument", monument: "auto", layout: "corner", person: true, design: "classic", wstyle: "classic", hidden: [], hiAcc: false, wplace: "gps", showGps: true };
+const CFG0 = { units: { t: "c", w: "kmh", p: "mm", pr: "hpa" }, sync: 15, wsync: 30, anim: "on", scene: "monument", monument: "auto", xmas: "auto", layout: "corner", person: true, design: "classic", wstyle: "classic", hidden: [], hiAcc: false, wplace: "gps", showGps: true };
 const cfg = (() => { const c = store0("ceu.cfg") || {}; return { ...CFG0, ...c, units: { ...CFG0.units, ...(c.units || {}) } }; })();
 function store0(k){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; }catch(e){ return null; } }
 if(cfg.scene === "land") cfg.scene = cfg.style === "burton" ? "gothic" : "lake";
@@ -621,8 +621,21 @@ const Sky = (() => {
     const glints = Array.from({ length: 40 }, () => ({ x: Math.random() * W, y: hz + 2 + Math.random() * (LH - 4), l: 6 + Math.random() * 26, p: Math.random() * 6.28 }));
     land = { pal, hz, lb, LH, mc, rc, bc, gc, blades, glints, ripples: [], top };
   }
+  function drawXmasTree(x, y, h, t){ const night = !P.day, dim = c => night ? mixc(c, "#0a0f1c", .45) : c; ctx.save(); ctx.translate(x, y);
+    const sh = ctx.createRadialGradient(0, 0, 0, 0, 0, h * .4); sh.addColorStop(0, "rgba(0,0,0,.28)"); sh.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = sh; ctx.beginPath(); ctx.ellipse(0, 0, h * .4, h * .06, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = dim("#5a3e2a"); ctx.fillRect(-h * .04, -h * .1, h * .08, h * .1);
+    for(let k = 0; k < 4; k++){ const yb = -h * (.08 + k * .2), w = h * (.36 - k * .075), yt = yb - h * .3, g = ctx.createLinearGradient(-w, 0, w, 0); g.addColorStop(0, dim("#1f4a2c")); g.addColorStop(.6, dim("#2f6a3c")); g.addColorStop(1, dim("#24553a"));
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-w, yb); ctx.quadraticCurveTo(0, yb + h * .05, w, yb); ctx.lineTo(0, yt); ctx.closePath(); ctx.fill(); if(P.kind === "snow"){ ctx.fillStyle = "rgba(255,255,255,.75)"; ctx.beginPath(); ctx.moveTo(-w * .6, yb - h * .06); ctx.lineTo(0, yt); ctx.lineTo(w * .6, yb - h * .06); ctx.quadraticCurveTo(0, yb - h * .12, -w * .6, yb - h * .06); ctx.fill(); } }
+    const cols = ["#ff4a3a", "#ffd23a", "#3ab8ff", "#ff8a2a", "#ffffff", "#7aff7a"];
+    for(let k = 0; k < 34; k++){ const v = (k * 0.6180339) % 1, yy = -h * (.12 + v * .78), half = h * .34 * (1 - v * .92) * .9, xx = Math.sin(k * 2.39) * half, on = .55 + .45 * Math.sin(t * .004 + k * 1.7);
+      if(night){ ctx.fillStyle = rgba(cols[k % 6], .22 * on); ctx.beginPath(); ctx.arc(xx, yy, h * .03, 0, 7); ctx.fill(); } ctx.fillStyle = rgba(cols[k % 6], night ? on : .9); ctx.beginPath(); ctx.arc(xx, yy, h * .011, 0, 7); ctx.fill(); }
+    const sy = -h * .92, st = .75 + .25 * Math.sin(t * .003); if(night){ const g = ctx.createRadialGradient(0, sy, 0, 0, sy, h * .14); g.addColorStop(0, `rgba(255,220,120,${.5 * st})`); g.addColorStop(1, "rgba(255,220,120,0)"); ctx.fillStyle = g; ctx.fillRect(-h * .15, sy - h * .15, h * .3, h * .3); }
+    ctx.fillStyle = "#ffd23a"; ctx.beginPath(); for(let i = 0; i < 10; i++){ const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? h * .022 : h * .05; ctx.lineTo(Math.cos(a) * rr, sy + Math.sin(a) * rr); } ctx.fill();
+    [[-.2, "#c8352b", "#f2c230"], [.16, "#2f6db5", "#f3f1ea"], [-.02, "#f2c230", "#c8352b"]].forEach(([dx, c1, c2], i) => { const bw = h * (.11 - i * .015), bx = h * dx - bw / 2; ctx.fillStyle = dim(c1); ctx.fillRect(bx, -bw * .8, bw, bw * .8); ctx.fillStyle = dim(c2); ctx.fillRect(bx + bw * .42, -bw * .8, bw * .16, bw * .8); ctx.fillRect(bx, -bw * .5, bw, bw * .14); });
+    ctx.restore(); }
   function drawPerson(x, y, h, t, wind){
-    const o = P.outfit || {}, night = !P.day, dim = c => night ? mixc(c, "#0a0f1c", .5) : c;
+    if(P.xmas) drawXmasTree(x - h * .5, y - h * .02, h * 1.05, t);
+    const o = P.xmas ? Object.assign({}, P.outfit || {}, { hat: "santa" }) : (P.outfit || {}), night = !P.day, dim = c => night ? mixc(c, "#0a0f1c", .5) : c;
     const sw = Math.sin(t * .0019 * (1 + wind)) * (2 + wind * 4), sw2 = Math.sin(t * .0031 * (1 + wind) + 1) * (1.5 + wind * 2.5);
     ctx.save(); ctx.translate(x, y);
     const sh = ctx.createRadialGradient(0, 0, 0, 0, 0, h * .16); sh.addColorStop(0, "rgba(0,0,0,.3)"); sh.addColorStop(1, "rgba(0,0,0,0)");
@@ -651,7 +664,9 @@ const Sky = (() => {
     ctx.fillStyle = hg; ctx.beginPath(); ctx.ellipse(0, -h * .905, h * .058, h * .066, 0, 0, 7); ctx.fill();
     ctx.beginPath(); ctx.moveTo(-h * .055, -h * .9); ctx.quadraticCurveTo(-h * .07, -h * .78, -h * .045, -h * .7);
     ctx.quadraticCurveTo(h * .02 + sw * .5, -h * .69 + sw2 * .3, h * .06 + sw * .9, -h * .72 + sw2 * .4); ctx.quadraticCurveTo(h * .07, -h * .82, h * .055, -h * .9); ctx.fill();
-    if(o.hat === "beanie"){ ctx.fillStyle = dim(o.hatc || "#d5544a"); ctx.beginPath(); ctx.arc(0, -h * .925, h * .064, Math.PI, 0); ctx.fill(); ctx.fillRect(-h * .066, -h * .93, h * .132, h * .02); }
+    if(o.hat === "santa"){ ctx.fillStyle = dim("#c8352b"); ctx.beginPath(); ctx.moveTo(-h * .066, -h * .925); ctx.quadraticCurveTo(-h * .02, -h * 1.07, h * .05 + sw * .3, -h * 1.02); ctx.quadraticCurveTo(h * .06, -h * .97, h * .066, -h * .925); ctx.fill();
+      ctx.fillStyle = dim("#f6f4ee"); ctx.fillRect(-h * .07, -h * .94, h * .14, h * .028); ctx.beginPath(); ctx.arc(h * .056 + sw * .3, -h * 1.015, h * .02, 0, 7); ctx.fill(); }
+    else if(o.hat === "beanie"){ ctx.fillStyle = dim(o.hatc || "#d5544a"); ctx.beginPath(); ctx.arc(0, -h * .925, h * .064, Math.PI, 0); ctx.fill(); ctx.fillRect(-h * .066, -h * .93, h * .132, h * .02); }
     if(o.hat === "sun"){ ctx.fillStyle = dim("#e9d7a8"); ctx.beginPath(); ctx.ellipse(0, -h * .955, h * .12, h * .022, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(0, -h * .96, h * .055, Math.PI, 0); ctx.fill(); }
     if(o.umbrella){
       const tilt = -.15 - wind * .08 + sw * .004;
@@ -2396,13 +2411,15 @@ const Sky = (() => {
     const hzg = mx.createLinearGradient(0, by - H * .08, 0, by); hzg.addColorStop(0, rgba(pal.hzc, 0)); hzg.addColorStop(1, rgba(pal.hzc, P.day ? .3 : .1)); mx.fillStyle = hzg; mx.fillRect(0, by - H * .08, W, H * .08 + 6);
     const [oc, ox] = mkc(W, by + 6), lit = [];
     M.draw(ox, W, by, u, lit);
+    let bulbs = null; if(P.xmas){ bulbs = []; try{ const iw = oc.width, ih = oc.height, d = ox.getImageData(0, 0, iw, ih).data, s = iw / W, step = 7, cols = ["#ff4a3a", "#ffd23a", "#3ab8ff", "#ff8a2a", "#ffffff", "#7aff7a"];
+      for(let a = 4, i = 0; a < W - 4; a += step, i++){ const px = Math.round(a * s); let yy = -1; for(let y = 0; y < ih; y += 2){ if(d[(y * iw + px) * 4 + 3] > 140){ yy = y / s; break; } } if(yy > 0 && yy < by - 18 * u) bulbs.push([a, yy + 1.5, cols[i % 6], i * 1.3]); } }catch(e){ bulbs = null; } }
     if(snow){ ox.save(); ox.globalCompositeOperation = "source-atop"; const sg = ox.createLinearGradient(0, 0, 0, by); sg.addColorStop(0, "rgba(255,255,255,.25)"); sg.addColorStop(1, "rgba(255,255,255,.05)"); ox.fillStyle = sg; ox.fillRect(0, 0, W, by + 6); ox.restore(); }
     if(!P.day){ ox.save(); ox.globalCompositeOperation = "source-atop"; ox.fillStyle = "rgba(8,12,28,.62)"; ox.fillRect(0, 0, W, by + 6);
       const fl = ox.createLinearGradient(0, by, 0, by - H * .32); fl.addColorStop(0, "rgba(255,196,120,.42)"); fl.addColorStop(1, "rgba(255,196,120,.04)"); ox.fillStyle = fl; ox.fillRect(0, 0, W, by + 6); ox.restore();
       lit.forEach(([a, b, w, h]) => { ox.fillStyle = Math.random() < .85 ? "#ffd27a" : "#fff0c8"; ox.fillRect(a, b, w, h); }); }
     else if(!["clear", "partly"].includes(P.kind)){ ox.save(); ox.globalCompositeOperation = "source-atop"; ox.fillStyle = "rgba(60,70,85,.18)"; ox.fillRect(0, 0, W, by + 6); ox.restore(); }
     mx.drawImage(oc, 0, 0, W, by + 6);
-    const L = { type: "monument", M, pal, by, lb, mc, water, u };
+    const L = { type: "monument", M, pal, by, lb, mc, water, u, bulbs };
     if(water){
       const LH = lb - by, [rc, rx] = mkc(W, LH);
       const rg = rx.createLinearGradient(0, 0, 0, LH); rg.addColorStop(0, nd(mixc(pal.lakeT, pal.hzc, .3), .6)); rg.addColorStop(1, nd(pal.lakeB, .7)); rx.fillStyle = rg; rx.fillRect(0, 0, W, LH);
@@ -2443,6 +2460,8 @@ const Sky = (() => {
       sunGlitter(t, L.by, L.lb, W * .76); rainRipples(L, L.by, L.lb, f);
     }
     ctx.drawImage(L.mc, 0, 0, W, L.by + 6);
+    if(L.bulbs){ const night = !P.day; L.bulbs.forEach(([a, b, c, ph]) => { const on = .55 + .45 * Math.sin(t * .0035 + ph); if(night){ ctx.fillStyle = rgba(c, .25 * on); ctx.beginPath(); ctx.arc(a, b, 4.5, 0, 7); ctx.fill(); }
+      ctx.fillStyle = rgba(c, night ? .6 + .4 * on : .85); ctx.beginPath(); ctx.arc(a, b, 1.7, 0, 7); ctx.fill(); }); }
     if(M.ground === "falls"){ const top = L.by - 130 * u + 50 * u;
       for(let i = 0; i < 9; i++){ const x0 = W * (.04 + i * .11), w = (14 + (i % 3) * 8) * u;
         const g = ctx.createLinearGradient(0, top - 50 * u, 0, L.by); g.addColorStop(0, "rgba(255,255,255,.85)"); g.addColorStop(1, "rgba(235,242,250,.6)"); ctx.fillStyle = g; ctx.fillRect(x0, top - 50 * u, w, L.by - top + 50 * u);
@@ -2535,7 +2554,7 @@ const Sky = (() => {
     pick: pickMonument,
     list: () => MONUMENTS.map(m => ({ id: m.id, name: m.name, city: m.city, cc: m.cc })),
     set(p){
-      const key = JSON.stringify([p.sky, p.kind, Math.round(p.cloud / 10), Math.round((p.precip || 0) * 2), p.scene, p.month, p.monument]);
+      const key = JSON.stringify([p.sky, p.kind, Math.round(p.cloud / 10), Math.round((p.precip || 0) * 2), p.scene, p.month, p.monument, !!p.xmas]);
       P = p; if(key !== lastKey){ lastKey = key; build(); }
       cv.style.display = p.off ? "none" : "";
       if(p.off){ if(raf){ cancelAnimationFrame(raf); raf = 0; } return; }
@@ -2788,7 +2807,7 @@ function renderAll(){
   const mInfo = monId ? Sky.list().find(m => m.id === monId) : null; state.monName = mInfo ? `${mInfo.name}, ${mInfo.city}` : "";
   try{ Sky.set({ sky: skyKey, kind: kindOf(cur.weather_code), day: !!cur.is_day, cloud: cur.cloud_cover ?? 50, wind: cur.wind_speed_10m,
     precip: Math.max(cur.precipitation || 0, nc0 ? (nc0[0].v || 0) * 4 : 0, H.precipitation[idx] || 0), moonTh: moonInfo().th, still: cfg.anim === "static", off: cfg.anim === "off",
-    scene: sceneNow, monument: monId, person: cfg.person, outfit: outfitOf(cur), warm: goldenHour(fc), month: new Date().getMonth() }); document.body.classList.toggle("land", cfg.scene !== "sky" && cfg.anim !== "off"); }catch(e){ console.error(e); }
+    scene: sceneNow, monument: monId, xmas: isXmas(), person: cfg.person, outfit: outfitOf(cur), warm: goldenHour(fc), month: new Date().getMonth() }); document.body.classList.toggle("land", cfg.scene !== "sky" && cfg.anim !== "off"); }catch(e){ console.error(e); }
   const SKYTOP = { clear: "#1d5bb8", partly: "#2f5f9e", cloudy: "#465264", rain: "#2a3546", storm: "#1d1a2b", snow: "#5f7491", fog: "#6a727e" };
   document.querySelector('meta[name="theme-color"]').content = cur.is_day ? (SKYTOP[skyKey.split("-")[0]] || "#1d5bb8") : "#0b0f1c";
   renderHeader(); renderSub();
@@ -3224,6 +3243,7 @@ const CCN = { PT: "Portugal", BR: "Brasil", DE: "Alemanha", PL: "Polónia", FR: 
   AU: "Austrália", NZ: "Nova Zelândia", FJ: "Fiji", PF: "Polinésia Francesa" };
 function monOptions(){ const L = Sky.list(), by = {}; L.forEach(m => (by[m.cc] = by[m.cc] || []).push(m)); const top = ["PT", "BR", "DE", "PL"];
   return Object.keys(by).sort((a, b) => (top.indexOf(a) + 1 || 99) - (top.indexOf(b) + 1 || 99) || (CCN[a] || a).localeCompare(CCN[b] || b)).map(cc => `<optgroup label="${esc(CCN[cc] || cc)}">${by[cc].sort((a, b) => a.city.localeCompare(b.city)).map(m => `<option value="${m.id}"${cfg.monument === m.id ? " selected" : ""}>${esc(m.city)} · ${esc(m.name)}</option>`).join("")}</optgroup>`).join(""); }
+function isXmas(){ const v = cfg.xmas || "auto"; if(v === "on") return true; if(v === "off") return false; const d = new Date(); return d.getMonth() === 11 && d.getDate() <= 26; }
 const SCENES = [["monument", "Monumentos do país"], ["lake", "Lago e montanhas"], ["sea", "Mar e farol"], ["city", "Cidade junto ao rio"], ["field", "Campo com moinho"], ["village", "Aldeia na serra"], ["gothic", "Gótico (Tim Burton)"], ["sky", "Só céu"]];
 const seg = (key, opts, val) => `<div class="seg" data-k="${key}">${opts.map(([v, l]) => `<button data-v="${v}" class="${String(v) === String(val) ? "on" : ""}">${l}</button>`).join("")}</div>`;
 function fmtWhen(ts){ if(!ts) return "nunca"; const d = new Date(ts), now = new Date(); const hm = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
@@ -3255,6 +3275,7 @@ function renderSettings(){
     <div class="set-row"><div>Design do app</div>${seg("design", [["classic", "Clássico"], ["glass", "Liquid Glass"]], cfg.design)}</div>
     <div class="set-row"><div>Estilo dos widgets<small>Toca em ↻ no widget para aplicar já</small></div>${seg("wstyle", [["classic", "Clássico"], ["glass", "Vidro"]], cfg.wstyle)}</div>
     <div class="set-row"><div>Posição da temperatura</div>${seg("layout", [["corner", "Canto"], ["center", "Centro"]], cfg.layout)}</div>
+    <div class="set-row"><div>Decoração de Natal<small>Automática: de 1 a 26 de dezembro</small></div><select class="sel" id="xmasSel">${[["auto", "Automática"], ["on", "Sempre"], ["off", "Desligada"]].map(([v, l]) => `<option value="${v}"${(cfg.xmas || "auto") === v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
     <div class="set-row"><div>Cena de fundo<small>Muda com o tempo, a hora e a estação</small></div><select class="sel" id="sceneSel">${SCENES.map(([v, l]) => `<option value="${v}"${cfg.scene === v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
     ${cfg.scene === "monument" ? `<div class="set-row"><div>Monumento<small>Automático: o mais perto de ti no país onde estás</small></div><select class="sel" id="monSel"><option value="auto">Automático</option>${monOptions()}</select></div>` : ""}
     <div class="set-row"><div>Pessoa na paisagem<small>Veste-se conforme o tempo</small></div>${seg("person", [[1, "Sim"], [0, "Não"]], cfg.person ? 1 : 0)}</div>
@@ -3292,7 +3313,7 @@ $("#setBody").addEventListener("click", e => {
   if(e.target.closest("#clearCache")){ state.pc = {}; ["ceu.cache", "ceu.ipmaD"].forEach(k => store.set(k, null)); toast("Cache limpa"); refresh(true); return; }
   if(e.target.closest("#resetAll")){ Object.assign(cfg, JSON.parse(JSON.stringify(CFG0))); saveCfg(); applyDesign(); state.source = "auto"; store.set("ceu.source", "auto"); renderSettings(); setupSync(); saveWidget(); if(state.data) renderAll(); toast("Definições repostas"); }
 });
-$("#setBody").addEventListener("change", e => { if(e.target.id === "sceneSel"){ cfg.scene = e.target.value; saveCfg(); renderSettings(); if(state.data) renderAll(); return; } if(e.target.id === "monSel"){ cfg.monument = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "wplace"){ cfg.wplace = e.target.value; saveCfg(); saveWidget(); toast("Local dos widgets atualizado"); } });
+$("#setBody").addEventListener("change", e => { if(e.target.id === "sceneSel"){ cfg.scene = e.target.value; saveCfg(); renderSettings(); if(state.data) renderAll(); return; } if(e.target.id === "xmasSel"){ cfg.xmas = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "monSel"){ cfg.monument = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "wplace"){ cfg.wplace = e.target.value; saveCfg(); saveWidget(); toast("Local dos widgets atualizado"); } });
 
 /* ---------- puxar para atualizar ---------- */
 (() => {
