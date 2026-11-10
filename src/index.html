@@ -1286,16 +1286,32 @@ const Sky = (() => {
         _P(x, [[zx - 46 * u, by - 190 * u], [zx, by - 215 * u], [zx + 46 * u, by - 190 * u]], "#2b201b"); _L(x, zx - 40 * u, by - 150 * u, zx - 70 * u, by - 150 * u, wd, 4 * u);
         _P(x, [[zx + 34 * u, by - 108 * u], [zx + 34 * u, by - 168 * u], [zx + 60 * u, by - 168 * u], [zx + 64 * u, by - 108 * u]], "#efe3c4"); _P(x, [[zx + 32 * u, by - 168 * u], [zx + 47 * u, by - 190 * u], [zx + 62 * u, by - 168 * u]], ST.roof); } },
     { id: "pl-bydgoszcz", cc: "PL", name: "Spichrze nad Brdą", city: "Bydgoszcz", lat: 53.1226, lon: 18.0004, ground: "water", near: "quay", bg: "city",
-      draw(x, W, by, u, lit){ const wall = "#efe8dc", tim = "#4a3428", roof = "#a9432f";
-        [[W * .2, 70], [W * .44, 76], [W * .68, 70]].forEach(([cx, w0]) => { const w = w0 * u, h = 95 * u, a = cx - w / 2;
-          _R(x, a, by - h, w, h, wall); _shade(x, a, by - h, w, h, .2);
-          x.strokeStyle = tim; x.lineWidth = 2.2 * u; x.strokeRect(a, by - h, w, h);
-          for(let r = 1; r < 4; r++) _L(x, a, by - h + r * h / 4, a + w, by - h + r * h / 4, tim, 2 * u);
-          for(let k = 1; k < 5; k++) _L(x, a + k * w / 5, by - h, a + k * w / 5, by, tim, 1.8 * u);
-          for(let r = 0; r < 4; r++) for(let k = 0; k < 5; k++) if((r + k) % 2) _L(x, a + k * w / 5, by - h + r * h / 4, a + (k + 1) * w / 5, by - h + (r + 1) * h / 4, tim, 1.2 * u);
-          _P(x, [[a - 4 * u, by - h], [cx, by - h - 70 * u], [a + w + 4 * u, by - h]], roof);
-          for(let r = 0; r < 3; r++) _W(lit, x, cx - 5 * u, by - h - 50 * u + r * 15 * u + (r ? 0 : 5 * u), 10 * u, 8 * u, "rgba(40,30,25,.6)");
-          for(let r = 0; r < 3; r++) for(let k = 0; k < 2; k++) _W(lit, x, a + w * (.15 + k * .55), by - h + 10 * u + r * (h / 4), 8 * u, 10 * u, "rgba(40,30,25,.55)"); }); } },
+      draw(x, W, by, u, lit){ const wall = "#f1ece2", tim = "#2b2622", base = "#d9cdb8";
+        A.houses(x, -10, W * .24, by, u, lit, { w: 40, h: 70, cols: ["#6b625a", "#7a7068", "#5f5750"], top: "roof", roof: "#4a4440" }); A.tower(x, W * .05, by - 70 * u, u, 14, 50, "#4f4842", lit, "needle", "#3a3430");
+        A.houses(x, W * .9, W + 10, by, u, lit, { w: 60, h: 100, cols: ["#e9dcc0"], top: "flat" });
+        const gr = (cx, w, wh, gh, kind) => { w *= u; wh *= u; gh *= u; const a = cx - w / 2, top = by - wh - gh, path = () => { x.beginPath(); x.moveTo(a, by); x.lineTo(a, by - wh);
+            if(kind === "ogee"){ x.bezierCurveTo(a, by - wh - gh * .7, cx - w * .1, top + gh * .1, cx, top); x.bezierCurveTo(cx + w * .1, top + gh * .1, a + w, by - wh - gh * .7, a + w, by - wh); } else x.lineTo(cx, top), x.lineTo(a + w, by - wh);
+            x.lineTo(a + w, by); x.closePath(); };
+          path(); x.fillStyle = wall; x.fill(); x.save(); path(); x.clip(); _R(x, a, by - 26 * u, w, 26 * u, base);
+          const rows = Math.round((wh + gh - 26 * u) / (17 * u)), cols = Math.round(w / (11 * u)), rh = (wh + gh - 26 * u) / rows, cw = w / cols;
+          for(let r = 0; r <= rows; r++) _L(x, a, by - 26 * u - r * rh, a + w, by - 26 * u - r * rh, tim, 1.8 * u);
+          for(let k = 0; k <= cols; k++) _L(x, a + k * cw, by - 26 * u, a + k * cw, top, tim, k % 2 ? 1.1 * u : 1.8 * u);
+          for(let r = 0; r < rows; r++) for(let k = 0; k < cols; k++){ const y0 = by - 26 * u - r * rh, x0 = a + k * cw;
+            if((r + k) % 3 === 1) _L(x, x0, y0, x0 + cw, y0 - rh, tim, 1 * u); else if((r * 7 + k) % 5 === 0){ _R(x, x0 + cw * .22, y0 - rh * .78, cw * .56, rh * .56, "rgba(40,40,46,.75)"); if((r * 3 + k) % 4 === 0) lit.push([x0 + cw * .22, y0 - rh * .78, cw * .56, rh * .56]); } }
+          _shade(x, a, top, w, wh + gh, .12); x.restore(); path(); x.strokeStyle = tim; x.lineWidth = 2 * u; x.stroke();
+          for(let k = 0; k < 3; k++) _R(x, a + w * (.18 + k * .3), by - 20 * u, 9 * u, 20 * u, "#5a4a3e");
+          const N = 40; for(let i = 0; i <= N; i++){ const t = i / N; let px, py;
+            if(kind === "ogee"){ const s2 = t < .5 ? t * 2 : (t - .5) * 2, p0 = t < .5 ? [a, by - wh] : [cx, top], p1 = t < .5 ? [a, by - wh - gh * .7] : [cx + w * .1, top + gh * .1], p2 = t < .5 ? [cx - w * .1, top + gh * .1] : [a + w, by - wh - gh * .7], p3 = t < .5 ? [cx, top] : [a + w, by - wh], m = 1 - s2;
+              px = m * m * m * p0[0] + 3 * m * m * s2 * p1[0] + 3 * m * s2 * s2 * p2[0] + s2 * s2 * s2 * p3[0]; py = m * m * m * p0[1] + 3 * m * m * s2 * p1[1] + 3 * m * s2 * s2 * p2[1] + s2 * s2 * s2 * p3[1]; }
+            else { px = t < .5 ? a + (cx - a) * t * 2 : cx + (a + w - cx) * (t - .5) * 2; py = t < .5 ? by - wh - gh * t * 2 : top + gh * (t - .5) * 2; }
+            lit.push([px - 1.2 * u, py - 1.2 * u, 2.4 * u, 2.4 * u]); } };
+        const g0 = W * .27; gr(g0 + 47 * u, 95, 62, 86, "tri"); gr(g0 + 95 * u + 56 * u, 112, 80, 104, "tri"); gr(g0 + 207 * u + 52 * u, 104, 56, 96, "ogee");
+        const tx = g0 + 70 * u; _P(x, [[tx, by - 16 * u], [tx + 150 * u, by - 16 * u], [tx + 140 * u, by + 2], [tx + 12 * u, by + 2]], "#1f1f22"); _R(x, tx + 4 * u, by - 5 * u, 140 * u, 3 * u, "#b8352b"); _R(x, tx + 20 * u, by - 34 * u, 100 * u, 18 * u, "#f3f1ea");
+        for(let k = 0; k < 8; k++){ _C(x, tx + 28 * u + k * 12 * u, by - 25 * u, 2.6 * u, "#2a2a2a"); if(k % 3 === 0) lit.push([tx + 25 * u + k * 12 * u, by - 28 * u, 6 * u, 6 * u]); } _R(x, tx + 60 * u, by - 46 * u, 26 * u, 12 * u, "#f3f1ea"); _R(x, tx + 76 * u, by - 62 * u, 6 * u, 16 * u, "#2a2a2a");
+        x.save(); x.font = `800 ${24 * u}px system-ui, sans-serif`; x.textBaseline = "bottom"; x.fillStyle = "#c8352b"; x.strokeStyle = "#f2b43c"; x.lineWidth = 1 * u;
+        x.fillText("BYDGOSZCZ", W * .08, by - 4 * u); x.strokeText("BYDGOSZCZ", W * .08, by - 4 * u); const tw = x.measureText("BYDGOSZCZ").width; x.restore(); for(let k = 0; k < 18; k++) lit.push([W * .08 + k * tw / 18, by - 22 * u, tw / 22, 16 * u]);
+        const lx = W * .045; _R(x, lx - 1.6 * u, by - 120 * u, 3.2 * u, 120 * u, "#2a2a2a"); [[0, -128], [-12, -116], [12, -116], [-20, -100], [20, -100], [-8, -96], [8, -96], [-24, -84], [24, -84]].forEach(([dx, dy]) => {
+          _L(x, lx, by - 90 * u, lx + dx * u, by + (dy + 4) * u, "#2a2a2a", 1 * u); _C(x, lx + dx * u, by + dy * u, 4 * u, "#f3efe6"); lit.push([lx + dx * u - 4 * u, by + dy * u - 4 * u, 8 * u, 8 * u]); }); } },
 
     /* ===== ALEMANHA ===== */
     { id: "de-berlin", cc: "DE", name: "Brandenburger Tor", city: "Berlin", lat: 52.5163, lon: 13.3777, ground: "plaza", bg: "city",
