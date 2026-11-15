@@ -51,7 +51,10 @@ object CeuWidgetData {
         if (f == null) null else {
             val o = BitmapFactory.Options()
             o.inPreferredConfig = Bitmap.Config.RGB_565
-            BitmapFactory.decodeFile(f.absolutePath, o)
+            val b = BitmapFactory.decodeFile(f.absolutePath, o)
+            /* mantém a imagem pequena para não ultrapassar o limite de memória dos widgets */
+            val maxW = if (sz == "s") 420 else 720
+            if (b != null && b.width > maxW) Bitmap.createScaledBitmap(b, maxW, (b.height * maxW.toFloat() / b.width).toInt(), true) else b
         }
     } catch (e: Throwable) { null }
 
