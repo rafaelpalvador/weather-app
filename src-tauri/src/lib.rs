@@ -146,7 +146,7 @@ mod desk {
 }
 
 #[tauri::command]
-fn show_desktop_widget(app: tauri::AppHandle) -> Result<(), String> {
+async fn show_desktop_widget(app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(desktop)]
     return desk::show(&app);
     #[cfg(not(desktop))]
@@ -154,14 +154,14 @@ fn show_desktop_widget(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn hide_desktop_widget(app: tauri::AppHandle) -> Result<(), String> {
+async fn hide_desktop_widget(app: tauri::AppHandle) -> Result<(), String> {
     use tauri::Manager;
     if let Some(w) = app.get_webview_window("widget") { let _ = w.hide(); }
     Ok(())
 }
 
 #[tauri::command]
-fn set_widget_glass(app: tauri::AppHandle, on: bool) -> Result<(), String> {
+async fn set_widget_glass(app: tauri::AppHandle, on: bool) -> Result<(), String> {
     #[cfg(desktop)]
     return desk::glass(&app, on);
     #[cfg(not(desktop))]
@@ -169,7 +169,7 @@ fn set_widget_glass(app: tauri::AppHandle, on: bool) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn set_widget_size(app: tauri::AppHandle, w: f64, h: f64) -> Result<(), String> {
+async fn set_widget_size(app: tauri::AppHandle, w: f64, h: f64) -> Result<(), String> {
     use tauri::Manager;
     if let Some(win) = app.get_webview_window("widget") {
         win.set_size(tauri::LogicalSize::new(w, h)).map_err(|e| e.to_string())?;
@@ -178,7 +178,7 @@ fn set_widget_size(app: tauri::AppHandle, w: f64, h: f64) -> Result<(), String> 
 }
 
 #[tauri::command]
-fn open_main_window(app: tauri::AppHandle) {
+async fn open_main_window(app: tauri::AppHandle) {
     #[cfg(desktop)]
     desk::open_main(&app);
     #[cfg(not(desktop))]
