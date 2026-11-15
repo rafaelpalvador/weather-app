@@ -154,6 +154,28 @@ svg.wi{display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linec
 .item .x,.item .up{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--faint);font-size:14px}
 
 
+
+/* ===== Widget no ambiente de trabalho (janela própria, ?widget=1) ===== */
+#dw,#dwMenu{display:none}
+html.wmode,html.wmode body{background:transparent!important;overflow:hidden!important;min-height:0!important}
+html.wmode body>*:not(#sky):not(#dw):not(#dwMenu){display:none!important}
+html.wmode #dw{display:block;position:fixed;inset:0;border-radius:8px;overflow:hidden;color:#fff;user-select:none;-webkit-user-select:none;cursor:default}
+#dw .dw-in{position:absolute;inset:0;padding:11px 15px 10px;display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(0,0,0,.30),rgba(0,0,0,0) 38%,rgba(0,0,0,.05) 60%,rgba(0,0,0,.5));text-shadow:0 1px 3px rgba(0,0,0,.4)}
+.dw-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px}.dw-top b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dw-top span{opacity:.7;font-size:11px;white-space:nowrap}
+.dw-mid{display:flex;align-items:center;gap:12px;margin-top:2px}
+.dw-t{font-size:clamp(34px,15vh,60px);font-weight:200;line-height:1;letter-spacing:-.02em}
+.dw-c{font-size:13px;min-width:0}.dw-c div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dw-c div+div{opacity:.82;font-size:12px;margin-top:3px}
+.dw-h{margin-top:auto;display:grid;grid-template-columns:repeat(6,1fr);text-align:center;font-size:11px;line-height:1.15}
+.dw-h span{opacity:.75}.dw-h b{font-weight:500;font-size:12px}.dw-h svg{width:20px;height:20px;display:block;margin:3px auto}
+html.dw-tiny .dw-h{display:none}
+html.dw-glass #sky,html.dw-dark #sky{display:none!important}
+html.dw-glass #dw{background:linear-gradient(150deg,rgba(255,255,255,.16),rgba(255,255,255,.04)),rgba(24,32,48,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 0 0 1px rgba(255,255,255,.12)}
+html.dw-glass #dw .dw-in,html.dw-dark #dw .dw-in{background:none}
+html.dw-dark #dw{background:linear-gradient(160deg,rgba(34,42,60,.94),rgba(16,20,30,.96));box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+html.wmode #dwMenu:not([hidden]){display:flex;position:fixed;inset:0;z-index:9;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;overflow:auto;background:rgba(14,18,28,.94);color:#fff;font-size:12px}
+#dwMenu .r{display:flex;align-items:center;gap:5px;flex-wrap:wrap}#dwMenu .r>i{font-style:normal;opacity:.6;width:52px}
+#dwMenu button{background:rgba(255,255,255,.1);border:0;color:#fff;border-radius:999px;padding:5px 10px;font:inherit;cursor:pointer}
+#dwMenu button.on{background:#fff;color:#141821}#dwMenu button:hover{background:rgba(255,255,255,.2)}#dwMenu button.on:hover{background:#fff}
 /* ===== Liquid Glass ===== */
 body.glass{--dim:rgba(255,255,255,.86);--faint:rgba(255,255,255,.66);--line:rgba(255,255,255,.18);--rain:#d4ecff}
 body.glass .shade{background:linear-gradient(180deg,rgba(0,0,0,.16) 0%,rgba(0,0,0,0) 26%,rgba(0,0,0,.04) 55%,rgba(6,8,14,.32) 100%)}
@@ -303,6 +325,8 @@ footer{font-size:11px;color:var(--faint);text-align:center;line-height:1.6;margi
   <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="11" result="n"/><feGaussianBlur in="n" stdDeviation="2.5" result="nb"/>
   <feDisplacementMap in="SourceGraphic" in2="nb" scale="26" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 <canvas id="sky" aria-hidden="true"></canvas><div class="shade"></div>
+<div id="dw"><div class="dw-in"><div class="dw-top"><b id="dwCity">Céu</b><span id="dwUpd"></span></div><div class="dw-mid"><div id="dwTemp" class="dw-t">–</div><div class="dw-c"><div id="dwCond">A carregar…</div><div id="dwHilo"></div></div></div><div id="dwHours" class="dw-h"></div></div></div>
+<div id="dwMenu" hidden></div>
 <div class="ptr" id="ptr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></div>
 
 <div class="wrap">
@@ -388,6 +412,8 @@ const hh = s => s.slice(11,13) + "h";
 const minutesOf = s => +s.slice(11,13) * 60 + +s.slice(14,16);
 
 const TAURI = window.__TAURI__ && window.__TAURI__.core ? window.__TAURI__.core : null;
+const WMODE = new URLSearchParams(location.search).has("widget"), IS_ANDROID = /Android/i.test(navigator.userAgent), IS_DESK = !!TAURI && !IS_ANDROID;
+if(WMODE) document.documentElement.classList.add("wmode");
 async function fetchJSON(url, ms = 12000){
   if(TAURI){
     const r = await TAURI.invoke("http_get", { url });
@@ -472,6 +498,7 @@ const Sky = (() => {
   const rnd = (a, b) => a + Math.random() * (b - a);
   function resize(){
     DPR = Math.min(devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight;
+    if(WMODE){ const rh = Math.round(Math.max(H / .44, W * .8)); cv.style.height = rh + "px"; cv.style.top = -Math.round(rh * .3) + "px"; H = rh; }
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     if(P) build(); draw(performance.now());
   }
@@ -2715,7 +2742,7 @@ function widgetScene(){ const p = widgetPlace() || state.place || {}; if(cfg.sce
   const id = cfg.monument && cfg.monument !== "auto" ? cfg.monument : Sky.pick(p.lat, p.lon, p.cc); return id ? { scene: "monument", monument: id } : { scene: "lake", monument: null }; }
 function widgetScenesKey(){ const w = widgetScene(); return JSON.stringify([3, w.scene, w.monument, isXmas(), cfg.person, new Date().getMonth()]); }
 function makeWidgetScenes(force){
-  if(!TAURI || !state.data || cfg.anim === "off" || makeWidgetScenes.busy) return;
+  if(!TAURI || WMODE || !IS_ANDROID || !state.data || cfg.anim === "off" || makeWidgetScenes.busy) return;
   const key = widgetScenesKey(), old = store.get("ceu.wscn") || {};
   if(!force && old.k === key && Date.now() - (old.t || 0) < 20 * 3600e3) return;
   makeWidgetScenes.busy = true; const jobs = [];
@@ -2728,7 +2755,7 @@ function makeWidgetScenes(force){
 }
 function widgetPlace(){ return cfg.wplace === "gps" ? store.get("ceu.lastAuto") : (favs().find(f => pkey(f) === cfg.wplace) || store.get("ceu.lastAuto")); }
 function saveWidget(){
-  if(!TAURI) return;
+  if(!TAURI || WMODE || !IS_ANDROID) return;
   const p = widgetPlace();
   if(!p) return;
   TAURI.invoke("save_widget_data", { json: JSON.stringify({ lat: p.lat, lon: p.lon, name: p.name, source: state.source, tu: cfg.units.t, wmin: cfg.wsync, wstyle: cfg.wstyle, ts: Date.now() }) }).catch(() => {});
@@ -2834,13 +2861,14 @@ function renderAll(){
   state.monId = monId; const mInfo = monId ? Sky.list().find(m => m.id === monId) : null; state.monName = mInfo ? `${mInfo.name}, ${mInfo.city}` : "";
   try{ Sky.set({ sky: skyKey, kind: kindOf(cur.weather_code), day: !!cur.is_day, cloud: cur.cloud_cover ?? 50, wind: cur.wind_speed_10m,
     precip: Math.max(cur.precipitation || 0, nc0 ? (nc0[0].v || 0) * 4 : 0, H.precipitation[idx] || 0), moonTh: moonInfo().th, still: cfg.anim === "static", off: cfg.anim === "off",
-    scene: sceneNow, monument: monId, xmas: isXmas(), person: cfg.person, outfit: outfitOf(cur), warm: goldenHour(fc), month: new Date().getMonth() }); document.body.classList.toggle("land", cfg.scene !== "sky" && cfg.anim !== "off"); }catch(e){ console.error(e); }
+    scene: sceneNow, monument: monId, xmas: isXmas(), person: cfg.person && !WMODE, outfit: outfitOf(cur), warm: goldenHour(fc), month: new Date().getMonth() }); document.body.classList.toggle("land", cfg.scene !== "sky" && cfg.anim !== "off"); }catch(e){ console.error(e); }
   const SKYTOP = { clear: "#1d5bb8", partly: "#2f5f9e", cloudy: "#465264", rain: "#2a3546", storm: "#1d1a2b", snow: "#5f7491", fog: "#6a727e" };
   document.querySelector('meta[name="theme-color"]').content = cur.is_day ? (SKYTOP[skyKey.split("-")[0]] || "#1d5bb8") : "#0b0f1c";
   renderHeader(); renderSub();
   renderHero(fc, idx, d.warn); renderWarnings(d.warn); renderHourly(fc, idx); renderNowcast(fc); renderDaily(fc);
   renderDetails(fc, idx, d.aq);
-  clearTimeout(renderAll.ws); renderAll.ws = setTimeout(() => makeWidgetScenes(), 4000);
+  renderDesktopWidget(fc, idx);
+  if(!WMODE && IS_ANDROID){ clearTimeout(renderAll.ws); renderAll.ws = setTimeout(() => makeWidgetScenes(), 4000); }
 }
 
 function nowcastInfo(fc){
@@ -3301,6 +3329,7 @@ function renderSettings(){
 
     <div class="set-sec">Aparência</div>
     <div class="set-row"><div>Design do app</div>${seg("design", [["classic", "Clássico"], ["glass", "Liquid Glass"]], cfg.design)}</div>
+    ${IS_DESK ? `<div class="set-row"><div>Widget no ambiente de trabalho<small>Arrasta para mover; botão direito para estilo, tamanho e arranque</small></div><select class="sel" id="dwSel"><option value="on"${cfg.dwidget !== false ? " selected" : ""}>Mostrar</option><option value="off"${cfg.dwidget === false ? " selected" : ""}>Esconder</option></select></div>` : ""}
     <div class="set-row"><div>Estilo dos widgets<small>Toca em ↻ no widget para aplicar já</small></div><select class="sel" id="wstyleSel">${[["classic", "Clássico (cor do tempo)"], ["glass", "Vidro fosco escuro"], ["frost", "Vidro fosco claro"], ["scene", "Imagem da cena"]].map(([v, l]) => `<option value="${v}"${cfg.wstyle === v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
     <div class="set-row"><div>Posição da temperatura</div>${seg("layout", [["corner", "Canto"], ["center", "Centro"]], cfg.layout)}</div>
     <div class="set-row"><div>Decoração de Natal<small>Automática: de 1 a 26 de dezembro</small></div><select class="sel" id="xmasSel">${[["auto", "Automática"], ["on", "Sempre"], ["off", "Desligada"]].map(([v, l]) => `<option value="${v}"${(cfg.xmas || "auto") === v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
@@ -3341,7 +3370,7 @@ $("#setBody").addEventListener("click", e => {
   if(e.target.closest("#clearCache")){ state.pc = {}; ["ceu.cache", "ceu.ipmaD"].forEach(k => store.set(k, null)); toast("Cache limpa"); refresh(true); return; }
   if(e.target.closest("#resetAll")){ Object.assign(cfg, JSON.parse(JSON.stringify(CFG0))); saveCfg(); applyDesign(); state.source = "auto"; store.set("ceu.source", "auto"); renderSettings(); setupSync(); saveWidget(); if(state.data) renderAll(); toast("Definições repostas"); }
 });
-$("#setBody").addEventListener("change", e => { if(e.target.id === "sceneSel"){ cfg.scene = e.target.value; saveCfg(); renderSettings(); if(state.data) renderAll(); return; } if(e.target.id === "wstyleSel"){ cfg.wstyle = e.target.value; saveCfg(); saveWidget(); if(cfg.wstyle === "scene") makeWidgetScenes(true); toast("Estilo dos widgets atualizado"); return; } if(e.target.id === "xmasSel"){ cfg.xmas = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "monSel"){ cfg.monument = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "wplace"){ cfg.wplace = e.target.value; saveCfg(); saveWidget(); toast("Local dos widgets atualizado"); } });
+$("#setBody").addEventListener("change", e => { if(e.target.id === "sceneSel"){ cfg.scene = e.target.value; saveCfg(); renderSettings(); if(state.data) renderAll(); return; } if(e.target.id === "dwSel"){ cfg.dwidget = e.target.value === "on"; saveCfg(); TAURI.invoke(cfg.dwidget ? "show_desktop_widget" : "hide_desktop_widget").catch(() => {}); return; } if(e.target.id === "wstyleSel"){ cfg.wstyle = e.target.value; saveCfg(); saveWidget(); if(cfg.wstyle === "scene") makeWidgetScenes(true); toast("Estilo dos widgets atualizado"); return; } if(e.target.id === "xmasSel"){ cfg.xmas = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "monSel"){ cfg.monument = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "wplace"){ cfg.wplace = e.target.value; saveCfg(); saveWidget(); toast("Local dos widgets atualizado"); } });
 
 /* ---------- puxar para atualizar ---------- */
 (() => {
@@ -3354,6 +3383,45 @@ $("#setBody").addEventListener("change", e => { if(e.target.id === "sceneSel"){ 
     else { ptr.style.transform = ""; ptr.style.opacity = 0; } });
 })();
 
+/* ---------- widget no ambiente de trabalho ---------- */
+const DW = Object.assign({ style: "scene" }, store.get("ceu.dw") || {});
+function dwApply(){ const h = document.documentElement; ["scene", "glass", "dark"].forEach(k => h.classList.toggle("dw-" + k, DW.style === k)); h.classList.toggle("dw-tiny", innerHeight < 165);
+  if(TAURI && WMODE) TAURI.invoke("set_widget_glass", { on: DW.style === "glass" }).catch(() => {}); }
+function renderDesktopWidget(fc, idx){
+  if(!WMODE) return; const c = fc.current, H = fc.hourly, D = fc.daily;
+  $("#dwCity").textContent = (state.place && state.place.name) || "Céu";
+  $("#dwUpd").textContent = state.data && state.data.ts ? new Date(state.data.ts).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" }) : "";
+  $("#dwTemp").textContent = RT(c.temperature_2m) + "°";
+  $("#dwCond").textContent = condTxt(c.weather_code, c.is_day);
+  const di = Math.max(0, D.time.indexOf(String(c.time || H.time[idx]).slice(0, 10)));
+  $("#dwHilo").textContent = `↑ ${RT(D.temperature_2m_max[di])}°   ↓ ${RT(D.temperature_2m_min[di])}°`;
+  let h = ""; for(let k = 1; k <= 6 && idx + k < H.time.length; k++){ const i = idx + k; h += `<div><span>${H.time[i].slice(11, 13)}h</span>${icon(H.weather_code[i], H.is_day[i])}<b>${RT(H.temperature_2m[i])}°</b></div>`; }
+  $("#dwHours").innerHTML = h; $("#dw").querySelectorAll("*").forEach(e => e.setAttribute("data-tauri-drag-region", "")); $("#dw").setAttribute("data-tauri-drag-region", "");
+}
+async function dwMenu(){
+  const m = $("#dwMenu"); let auto = false; try{ auto = await TAURI.invoke("plugin:autostart|is_enabled"); }catch(e){}
+  const b = (k, v, l, on) => `<button data-${k}="${v}" class="${on ? "on" : ""}">${l}</button>`;
+  m.innerHTML = `<div class="r"><i>Estilo</i>${b("st", "scene", "Cena", DW.style === "scene")}${b("st", "glass", "Vidro", DW.style === "glass")}${b("st", "dark", "Escuro", DW.style === "dark")}</div>
+    <div class="r"><i>Tamanho</i>${b("sz", "300x165", "P", 0)}${b("sz", "380x210", "M", 0)}${b("sz", "480x260", "G", 0)}</div>
+    <div class="r"><i>Arranque</i>${b("au", auto ? "off" : "on", "Iniciar com o Windows", auto)}</div>
+    <div class="r">${b("ac", "ref", "↻ Atualizar")}${b("ac", "open", "Abrir o Céu")}${b("ac", "hide", "Esconder")}${b("ac", "x", "Fechar menu")}</div>`;
+  m.hidden = false;
+}
+if(WMODE){
+  dwApply(); addEventListener("resize", () => document.documentElement.classList.toggle("dw-tiny", innerHeight < 165));
+  addEventListener("contextmenu", e => { e.preventDefault(); dwMenu(); });
+  $("#dw").addEventListener("dblclick", () => TAURI && TAURI.invoke("open_main_window"));
+  addEventListener("keydown", e => { if(e.key === "Escape") $("#dwMenu").hidden = true; });
+  $("#dwMenu").addEventListener("click", async e => { const t = e.target.closest("button"); if(!t){ $("#dwMenu").hidden = true; return; } const d = t.dataset;
+    if(d.st){ DW.style = d.st; store.set("ceu.dw", DW); dwApply(); dwMenu(); }
+    else if(d.sz){ const [w, h] = d.sz.split("x").map(Number); TAURI.invoke("set_widget_size", { w, h }).catch(() => {}); $("#dwMenu").hidden = true; }
+    else if(d.au){ try{ await TAURI.invoke(d.au === "on" ? "plugin:autostart|enable" : "plugin:autostart|disable"); }catch(err){} dwMenu(); }
+    else if(d.ac === "ref"){ $("#dwMenu").hidden = true; refresh(true); }
+    else if(d.ac === "open"){ $("#dwMenu").hidden = true; TAURI.invoke("open_main_window"); }
+    else if(d.ac === "hide"){ $("#dwMenu").hidden = true; TAURI.invoke("hide_desktop_widget"); }
+    else $("#dwMenu").hidden = true; });
+}
+if(IS_DESK && !WMODE && cfg.dwidget !== false) TAURI.invoke("show_desktop_widget").catch(e => console.warn(e));
 /* ---------- arranque ---------- */
 function applyDesign(){ document.body.classList.toggle("glass", cfg.design === "glass"); document.body.classList.toggle("corner", cfg.layout === "corner"); }
 applyDesign();
