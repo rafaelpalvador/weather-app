@@ -6,6 +6,10 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.view.View
 import android.widget.RemoteViews
 import org.json.JSONArray
 import org.json.JSONObject
@@ -37,6 +41,19 @@ object CeuWidgetData {
             ctx.dataDir.walkTopDown().maxDepth(3).firstOrNull { it.isFile && it.name == FILE }
         } catch (e: Exception) { null }
     }
+
+    /* imagem da cena gerada pelo app (uma por tipo de tempo, de dia e de noite) */
+    private fun sceneBitmap(ctx: Context, sz: String, c: Int, day: Boolean): Bitmap? = try {
+        val dir = settingsFile(ctx)?.parentFile
+        val k = kind(c)
+        val names = listOf("ceu-scn-$sz-$k-${if (day) "d" else "n"}.jpg", "ceu-scn-$sz-cloudy-${if (day) "d" else "n"}.jpg", "ceu-scn-$sz-clear-${if (day) "d" else "n"}.jpg")
+        val f = dir?.let { d -> names.map { File(d, it) }.firstOrNull { it.exists() } }
+        if (f == null) null else {
+            val o = BitmapFactory.Options()
+            o.inPreferredConfig = Bitmap.Config.RGB_565
+            BitmapFactory.decodeFile(f.absolutePath, o)
+        }
+    } catch (e: Throwable) { null }
 
     fun settings(ctx: Context): JSONObject? = try {
         settingsFile(ctx)?.readText()?.let { JSONObject(it) }
@@ -147,21 +164,76 @@ object CeuWidgetData {
     }
 
     /* ---------- desenhar ---------- */
+    private val TEXT_IDS = intArrayOf(R.id.w_city, R.id.w_temp, R.id.w_cond, R.id.w_hilo)
+    private val CELLS = arrayOf(
+        intArrayOf(R.id.c0t, R.id.c0i, R.id.c0v, R.id.c0p), intArrayOf(R.id.c1t, R.id.c1i, R.id.c1v, R.id.c1p),
+        intArrayOf(R.id.c2t, R.id.c2i, R.id.c2v, R.id.c2p), intArrayOf(R.id.c3t, R.id.c3i, R.id.c3v, R.id.c3p),
+        intArrayOf(R.id.c4t, R.id.c4i, R.id.c4v, R.id.c4p), intArrayOf(R.id.c5t, R.id.c5i, R.id.c5v, R.id.c5p)
+    )
+
+    private fun layoutFor(type: String): Int = when (type) {
+        "small" -> R.layout.ceu_widget_small
+        "scene" -> R.layout.ceu_widget_scene
+        "clock" -> R.layout.ceu_widget_clock
+        else -> R.layout.ceu_widget_wide
+    }
+
+    /* aplica o estilo escolhido no app: clássico, vidro fosco escuro, vidro fosco claro ou imagem da cena */
+    private fun applyStyle(ctx: Context, v: RemoteViews, type: String, style: String, code: Int, day: Boolean) {
+        var st = if (type == "scene") "scene" else style
+        var bmp: Bitmap? = null
+        if (st == "scene") {
+            bmp = sceneBitmap(ctx, if (type == "small") "s" else "w", code, day)
+            if (bmp == null) st = "classic"
+        }
+        val light = st == "frost"
+        when (st) {
+            "glass" -> v.setInt(R.id.w_root, "setBackgroundResource", R.drawable.wbg_glass)
+            "frost" -> v.setInt(R.id.w_root, "setBackgroundResource", R.drawable.wbg_frost)
+            "scene" -> v.setInt(R.id.w_root, "setBackgroundResource", R.drawable.wbg_round)
+            else -> v.setInt(R.id.w_root, "setBackgroundResource", bg(code, day))
+        }
+        if (bmp != null) {
+            v.setImageViewBitmap(R.id.w_bg, bmp)
+            v.setViewVisibility(R.id.w_bg, View.VISIBLE)
+            v.setViewVisibility(R.id.w_scrim, View.VISIBLE)
+        } else {
+            v.setViewVisibility(R.id.w_bg, View.GONE)
+            v.setViewVisibility(R.id.w_scrim, View.GONE)
+        }
+        val c1 = if (light) Color.parseColor("#FF18202E") else Color.WHITE
+        val c2 = if (light) Color.parseColor("#D918202E") else Color.parseColor("#EBFFFFFF")
+        val c3 = if (light) Color.parseColor("#A618202E") else Color.parseColor("#C2FFFFFF")
+        v.setTextColor(R.id.w_city, c1); v.setTextColor(R.id.w_temp, c1)
+        v.setTextColor(R.id.w_cond, c2); v.setTextColor(R.id.w_hilo, c3)
+        if (type == "clock") { v.setTextColor(R.id.w_clock, c1); v.setTextColor(R.id.w_date, c2) }
+        val tint = if (light) Color.parseColor("#FF2C3648") else Color.TRANSPARENT
+        v.setInt(R.id.w_icon, "setColorFilter", tint)
+        v.setInt(R.id.w_refresh, "setColorFilter", tint)
+        if (type == "hours" || type == "days") for (cell in CELLS) {
+            v.setTextColor(cell[0], c3); v.setTextColor(cell[2], c1)
+            v.setTextColor(cell[3], if (light) Color.parseColor("#FF2F6FD0") else Color.parseColor("#FF8CC8FF"))
+            v.setInt(cell[1], "setColorFilter", tint)
+        }
+    }
+
     fun render(ctx: Context, type: String): RemoteViews {
-        val glass = settings(ctx)?.optString("wstyle", "classic") == "glass"
-        val layout = if (type == "small") (if (glass) R.layout.ceu_widget_small_glass else R.layout.ceu_widget_small)
-                     else (if (glass) R.layout.ceu_widget_wide_glass else R.layout.ceu_widget_wide)
-        val v = RemoteViews(ctx.packageName, layout)
+        val style = settings(ctx)?.optString("wstyle", "classic") ?: "classic"
+        val v = RemoteViews(ctx.packageName, layoutFor(type))
         val open = ctx.packageManager.getLaunchIntentForPackage(ctx.packageName)
         if (open != null) {
             v.setOnClickPendingIntent(R.id.w_root, PendingIntent.getActivity(ctx, 0, open, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
         }
-        val cls = when (type) { "small" -> CeuWidgetSmall::class.java; "hours" -> CeuWidgetHours::class.java; else -> CeuWidgetDays::class.java }
+        val cls = when (type) {
+            "small" -> CeuWidgetSmall::class.java; "hours" -> CeuWidgetHours::class.java; "scene" -> CeuWidgetScene::class.java
+            "clock" -> CeuWidgetClock::class.java; else -> CeuWidgetDays::class.java
+        }
         val rf = Intent(ctx, cls).setAction(ACTION_REFRESH)
         v.setOnClickPendingIntent(R.id.w_refresh, PendingIntent.getBroadcast(ctx, type.hashCode(), rf, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
 
         val j = cached(ctx)
         if (j == null) {
+            applyStyle(ctx, v, type, if (style == "scene") "classic" else style, 3, true)
             v.setTextViewText(R.id.w_city, "Céu")
             v.setTextViewText(R.id.w_temp, "–")
             v.setTextViewText(R.id.w_cond, if (settings(ctx) == null) "Abre o app para definir a localização" else "A obter a previsão…")
@@ -185,49 +257,42 @@ object CeuWidgetData {
         val tmax = d.getJSONArray("temperature_2m_max")
         val tmin = d.getJSONArray("temperature_2m_min")
 
-        if (!glass) v.setInt(R.id.w_root, "setBackgroundResource", bg(code, day))
+        applyStyle(ctx, v, type, style, code, day)
         v.setTextViewText(R.id.w_city, j.optString("_name", "").ifEmpty { "Céu" })
         v.setTextViewText(R.id.w_temp, deg(temp))
         v.setImageViewResource(R.id.w_icon, icon(code, day))
         v.setTextViewText(R.id.w_cond, cond(code, day))
-        v.setTextViewText(R.id.w_hilo, "Máx. ${deg(tmax.optDouble(d0))}  Mín. ${deg(tmin.optDouble(d0))}")
+        v.setTextViewText(R.id.w_hilo, if (type == "clock") "↑${deg(tmax.optDouble(d0))} ↓${deg(tmin.optDouble(d0))}" else "Máx. ${deg(tmax.optDouble(d0))}  Mín. ${deg(tmin.optDouble(d0))}")
 
-        if (type != "small") {
-            val cells = arrayOf(
-                intArrayOf(R.id.c0t, R.id.c0i, R.id.c0v, R.id.c0p), intArrayOf(R.id.c1t, R.id.c1i, R.id.c1v, R.id.c1p),
-                intArrayOf(R.id.c2t, R.id.c2i, R.id.c2v, R.id.c2p), intArrayOf(R.id.c3t, R.id.c3i, R.id.c3v, R.id.c3p),
-                intArrayOf(R.id.c4t, R.id.c4i, R.id.c4v, R.id.c4p), intArrayOf(R.id.c5t, R.id.c5i, R.id.c5v, R.id.c5p)
-            )
-            if (type == "hours") {
-                val hT = h.getJSONArray("temperature_2m"); val hC = h.getJSONArray("weather_code")
-                val hD = h.getJSONArray("is_day"); val hP = h.getJSONArray("precipitation_probability")
-                for (k in cells.indices) {
-                    val i = i0 + 1 + k
-                    if (i >= ht.length()) break
-                    v.setTextViewText(cells[k][0], ht.optString(i).substring(11, 13) + "h")
-                    v.setImageViewResource(cells[k][1], icon(hC.optInt(i), hD.optInt(i, 1) == 1))
-                    v.setTextViewText(cells[k][2], deg(hT.optDouble(i)))
-                    val p = hP.optInt(i, 0)
-                    v.setTextViewText(cells[k][3], if (p >= 20) "$p%" else "")
+        if (type == "hours") {
+            val hT = h.getJSONArray("temperature_2m"); val hC = h.getJSONArray("weather_code")
+            val hD = h.getJSONArray("is_day"); val hP = h.getJSONArray("precipitation_probability")
+            for (k in CELLS.indices) {
+                val i = i0 + 1 + k
+                if (i >= ht.length()) break
+                v.setTextViewText(CELLS[k][0], ht.optString(i).substring(11, 13) + "h")
+                v.setImageViewResource(CELLS[k][1], icon(hC.optInt(i), hD.optInt(i, 1) == 1))
+                v.setTextViewText(CELLS[k][2], deg(hT.optDouble(i)))
+                val p = hP.optInt(i, 0)
+                v.setTextViewText(CELLS[k][3], if (p >= 20) "$p%" else "")
+            }
+        } else if (type == "days") {
+            val dC = d.getJSONArray("weather_code"); val dP = d.getJSONArray("precipitation_probability_max")
+            val cal = Calendar.getInstance()
+            for (k in CELLS.indices) {
+                val i = d0 + k
+                if (i >= dt.length()) break
+                val parts = dt.optString(i).split("-")
+                var label = "Hoje"
+                if (k > 0 && parts.size == 3) {
+                    cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
+                    label = WD[cal.get(Calendar.DAY_OF_WEEK) - 1]
                 }
-            } else {
-                val dC = d.getJSONArray("weather_code"); val dP = d.getJSONArray("precipitation_probability_max")
-                val cal = Calendar.getInstance()
-                for (k in cells.indices) {
-                    val i = d0 + k
-                    if (i >= dt.length()) break
-                    val parts = dt.optString(i).split("-")
-                    var label = "Hoje"
-                    if (k > 0 && parts.size == 3) {
-                        cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
-                        label = WD[cal.get(Calendar.DAY_OF_WEEK) - 1]
-                    }
-                    v.setTextViewText(cells[k][0], label)
-                    v.setImageViewResource(cells[k][1], icon(dC.optInt(i), true))
-                    v.setTextViewText(cells[k][2], "${deg(tmax.optDouble(i))} ${deg(tmin.optDouble(i))}")
-                    val p = dP.optInt(i, 0)
-                    v.setTextViewText(cells[k][3], if (p >= 20) "$p%" else "")
-                }
+                v.setTextViewText(CELLS[k][0], label)
+                v.setImageViewResource(CELLS[k][1], icon(dC.optInt(i), true))
+                v.setTextViewText(CELLS[k][2], "${deg(tmax.optDouble(i))} ${deg(tmin.optDouble(i))}")
+                val p = dP.optInt(i, 0)
+                v.setTextViewText(CELLS[k][3], if (p >= 20) "$p%" else "")
             }
         }
         return v
@@ -238,7 +303,9 @@ object CeuWidgetData {
         val all = listOf(
             Pair(CeuWidgetSmall::class.java, "small"),
             Pair(CeuWidgetHours::class.java, "hours"),
-            Pair(CeuWidgetDays::class.java, "days")
+            Pair(CeuWidgetDays::class.java, "days"),
+            Pair(CeuWidgetScene::class.java, "scene"),
+            Pair(CeuWidgetClock::class.java, "clock")
         )
         for ((cls, type) in all) {
             val ids = mgr.getAppWidgetIds(ComponentName(ctx, cls))
@@ -278,3 +345,5 @@ abstract class CeuWidgetBase : AppWidgetProvider() {
 class CeuWidgetSmall : CeuWidgetBase()
 class CeuWidgetHours : CeuWidgetBase()
 class CeuWidgetDays : CeuWidgetBase()
+class CeuWidgetScene : CeuWidgetBase()
+class CeuWidgetClock : CeuWidgetBase()

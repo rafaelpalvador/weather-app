@@ -155,25 +155,26 @@ svg.wi{display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linec
 
 
 /* ===== Liquid Glass ===== */
-body.glass{--dim:rgba(255,255,255,.78);--faint:rgba(255,255,255,.56);--line:rgba(255,255,255,.14)}
+body.glass{--dim:rgba(255,255,255,.86);--faint:rgba(255,255,255,.66);--line:rgba(255,255,255,.18);--rain:#d4ecff}
 body.glass .shade{background:linear-gradient(180deg,rgba(0,0,0,.16) 0%,rgba(0,0,0,0) 26%,rgba(0,0,0,.04) 55%,rgba(6,8,14,.32) 100%)}
+body.glass{--frost:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
 body.glass .blk,body.glass .cd,body.glass .warn{
-  background:linear-gradient(140deg,rgba(255,255,255,.17) 0%,rgba(255,255,255,.06) 42%,rgba(255,255,255,.09) 100%),rgba(14,20,36,.16);
-  text-shadow:0 1px 2px rgba(0,0,0,.18);
-  -webkit-backdrop-filter:blur(26px) saturate(175%);backdrop-filter:blur(26px) saturate(175%);
-  border:1px solid rgba(255,255,255,.2);border-radius:28px;position:relative;overflow:hidden;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 1px 0 0 rgba(255,255,255,.14),inset 0 -1px 0 rgba(255,255,255,.06),0 12px 34px rgba(0,0,0,.2)}
+  background:linear-gradient(150deg,rgba(255,255,255,.30) 0%,rgba(255,255,255,.16) 38%,rgba(255,255,255,.12) 62%,rgba(255,255,255,.22) 100%),rgba(70,86,112,.2);
+  text-shadow:0 1px 3px rgba(0,0,0,.34);
+  -webkit-backdrop-filter:blur(44px) saturate(185%) brightness(1.06);backdrop-filter:blur(44px) saturate(185%) brightness(1.06);
+  border:1px solid rgba(255,255,255,.36);border-radius:28px;position:relative;overflow:hidden;
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.75),inset 1px 0 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(255,255,255,.12),inset 0 -18px 30px -18px rgba(255,255,255,.18),0 16px 40px rgba(0,0,0,.24)}
 body.glass .blk::before,body.glass .cd::before,body.glass .warn::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
-  background:radial-gradient(110% 55% at 8% -12%,rgba(255,255,255,.24),transparent 55%),radial-gradient(70% 40% at 100% 115%,rgba(255,255,255,.09),transparent 60%)}
+  background:radial-gradient(120% 60% at 6% -14%,rgba(255,255,255,.36),transparent 56%),radial-gradient(80% 50% at 104% 118%,rgba(255,255,255,.14),transparent 62%)}
+body.glass .blk::after,body.glass .cd::after,body.glass .warn::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;background:var(--frost);background-size:180px;opacity:.16;mix-blend-mode:overlay}
 body.glass .blk>*,body.glass .cd>*,body.glass .warn>*{position:relative;z-index:1}
 body.glass .warn.yellow,body.glass .warn{background:linear-gradient(140deg,rgba(255,214,90,.26),rgba(255,190,40,.1))}
 body.glass .warn.orange{background:linear-gradient(140deg,rgba(255,150,60,.32),rgba(255,120,20,.12))}
 body.glass .warn.red{background:linear-gradient(140deg,rgba(255,90,90,.36),rgba(255,40,40,.14))}
 body.glass .ib,body.glass .h-sum,body.glass .tabs button,body.glass .toast{
-  background:linear-gradient(140deg,rgba(255,255,255,.26),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.28);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 6px 18px rgba(0,0,0,.18);
-  -webkit-backdrop-filter:blur(8px) saturate(180%);backdrop-filter:blur(8px) saturate(180%);
-  backdrop-filter:url(#lgr) blur(6px) saturate(180%)}
+  background:linear-gradient(150deg,rgba(255,255,255,.36),rgba(255,255,255,.16)),rgba(150,165,190,.12);border:1px solid rgba(255,255,255,.4);
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.75),inset 0 -1px 0 rgba(255,255,255,.12),0 8px 22px rgba(0,0,0,.2);
+  -webkit-backdrop-filter:blur(22px) saturate(185%) brightness(1.06);backdrop-filter:blur(22px) saturate(185%) brightness(1.06)}
 body.glass .h-sum.wet{background:linear-gradient(140deg,rgba(140,200,255,.34),rgba(111,182,255,.12))}
 body.glass .tabs button.on{background:rgba(255,255,255,.9);color:#141821}
 body.glass .bar,body.glass .sc{box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
@@ -183,10 +184,10 @@ body.glass .day summary{border-top-color:rgba(255,255,255,.12)}
 body.glass .nb i.z{background:rgba(255,255,255,.14)}
 body.glass .mapph,body.glass .map{background:rgba(255,255,255,.08)}
 body.glass .sheet .bd{background:rgba(0,0,0,.25)}
-body.glass .sheet .pn{background:linear-gradient(160deg,rgba(60,66,84,.55),rgba(24,28,38,.62));
-  -webkit-backdrop-filter:blur(34px) saturate(170%);backdrop-filter:blur(34px) saturate(170%);
+body.glass .sheet .pn{background:linear-gradient(160deg,rgba(120,132,156,.42),rgba(40,46,62,.55)),var(--frost);background-size:auto,180px;
+  -webkit-backdrop-filter:blur(50px) saturate(180%);backdrop-filter:blur(50px) saturate(180%);
   border:1px solid rgba(255,255,255,.18);border-bottom:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
-body.glass .inp,body.glass .seg,body.glass .opt,body.glass .btn,body.glass .sel,body.glass .chips2 button,body.glass .grab{background:rgba(255,255,255,.12)}
+body.glass .inp,body.glass .seg,body.glass .opt,body.glass .btn,body.glass .sel,body.glass .chips2 button,body.glass .grab{background:rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
 body.glass .seg button.on{background:rgba(255,255,255,.92);color:#141821}
 body.glass .item{border-bottom-color:rgba(255,255,255,.12)}
 body.glass .h-temp{text-shadow:0 2px 30px rgba(0,0,0,.25)}
@@ -2550,7 +2551,16 @@ const Sky = (() => {
   }
   addEventListener("resize", () => { clearTimeout(resize.t); resize.t = setTimeout(resize, 150); });
   resize();
+  /* imagem estática da cena para os widgets: desenha um quadro noutro tamanho e devolve JPEG */
+  function snapshot(w, h, over, rh, y0, q){
+    if(!P) return null; const sv = { W, H, DPR, P, cw: cv.width, ch: cv.height }; let url = null; rh = rh || h; y0 = y0 || 0;
+    try{ W = w; H = rh; DPR = 2; cv.width = w * 2; cv.height = rh * 2; ctx.setTransform(2, 0, 0, 2, 0, 0); P = Object.assign({}, sv.P, over || {}, { off: false });
+      build(); const tn = performance.now(); last = tn - 16; draw(tn);
+      const out = document.createElement("canvas"); out.width = w * 2; out.height = h * 2; out.getContext("2d").drawImage(cv, 0, Math.round(y0 * 2), w * 2, h * 2, 0, 0, w * 2, h * 2); url = out.toDataURL("image/jpeg", q || .84); }
+    catch(e){ console.warn("snapshot", e); }
+    W = sv.W; H = sv.H; DPR = sv.DPR; P = sv.P; cv.width = sv.cw; cv.height = sv.ch; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); build(); draw(performance.now()); return url; }
   return {
+    snapshot,
     pick: pickMonument,
     list: () => MONUMENTS.map(m => ({ id: m.id, name: m.name, city: m.city, cc: m.cc })),
     set(p){
@@ -2698,11 +2708,28 @@ async function fetchWarnings(p){
 
 /* ---------- carregar ---------- */
 const pkey = p => `${(+p.lat).toFixed(2)},${(+p.lon).toFixed(2)}`;
+/* Imagens da cena para os widgets: uma por tipo de tempo (dia e noite), em formato largo e quadrado.
+   O widget escolhe a imagem certa conforme o tempo atual, mesmo com o app fechado. */
+const WSCN_KINDS = [["clear", 5, 0], ["partly", 45, 0], ["cloudy", 92, 0], ["rain", 95, 2.5], ["storm", 96, 6], ["snow", 92, 1.5], ["fog", 80, 0]];
+function widgetScene(){ const p = widgetPlace() || state.place || {}; if(cfg.scene !== "monument") return { scene: cfg.scene, monument: null };
+  const id = cfg.monument && cfg.monument !== "auto" ? cfg.monument : Sky.pick(p.lat, p.lon, p.cc); return id ? { scene: "monument", monument: id } : { scene: "lake", monument: null }; }
+function widgetScenesKey(){ const w = widgetScene(); return JSON.stringify([3, w.scene, w.monument, isXmas(), cfg.person, new Date().getMonth()]); }
+function makeWidgetScenes(force){
+  if(!TAURI || !state.data || cfg.anim === "off" || makeWidgetScenes.busy) return;
+  const key = widgetScenesKey(), old = store.get("ceu.wscn") || {};
+  if(!force && old.k === key && Date.now() - (old.t || 0) < 20 * 3600e3) return;
+  makeWidgetScenes.busy = true; const jobs = [];
+  WSCN_KINDS.forEach(([kind, cloud, precip]) => [1, 0].forEach(day => [["w", 540, 270, 621, 190], ["s", 300, 300, 680, 200]].forEach(sz => jobs.push({ kind, cloud, precip, day, sz: sz[0], w: sz[1], h: sz[2], rh: sz[3], y0: sz[4] }))));
+  const step = () => { const j = jobs.shift(); if(!j){ makeWidgetScenes.busy = false; store.set("ceu.wscn", { k: key, t: Date.now() }); return; }
+    const url = Sky.snapshot(j.w, j.h, { ...widgetScene(), sky: `${j.kind}-${j.day ? "day" : "night"}`, kind: j.kind, day: !!j.day, cloud: j.cloud, precip: j.precip, warm: 0, still: true }, j.rh, j.y0);
+    const done = () => setTimeout(step, 120);
+    if(url) TAURI.invoke("save_widget_image", { name: `ceu-scn-${j.sz}-${j.kind}-${j.day ? "d" : "n"}.jpg`, b64: url }).then(done, done); else done(); };
+  setTimeout(step, 1500);
+}
+function widgetPlace(){ return cfg.wplace === "gps" ? store.get("ceu.lastAuto") : (favs().find(f => pkey(f) === cfg.wplace) || store.get("ceu.lastAuto")); }
 function saveWidget(){
   if(!TAURI) return;
-  let p = null;
-  if(cfg.wplace === "gps") p = store.get("ceu.lastAuto");
-  else p = favs().find(f => pkey(f) === cfg.wplace) || store.get("ceu.lastAuto");
+  const p = widgetPlace();
   if(!p) return;
   TAURI.invoke("save_widget_data", { json: JSON.stringify({ lat: p.lat, lon: p.lon, name: p.name, source: state.source, tu: cfg.units.t, wmin: cfg.wsync, wstyle: cfg.wstyle, ts: Date.now() }) }).catch(() => {});
 }
@@ -2804,7 +2831,7 @@ function renderAll(){
   const nc0 = nowcastInfo(fc);
   let sceneNow = cfg.scene, monId = null;
   if(cfg.scene === "monument"){ const p0 = state.place || {}; monId = cfg.monument && cfg.monument !== "auto" ? cfg.monument : Sky.pick(p0.lat, p0.lon, p0.cc); if(!monId) sceneNow = "lake"; }
-  const mInfo = monId ? Sky.list().find(m => m.id === monId) : null; state.monName = mInfo ? `${mInfo.name}, ${mInfo.city}` : "";
+  state.monId = monId; const mInfo = monId ? Sky.list().find(m => m.id === monId) : null; state.monName = mInfo ? `${mInfo.name}, ${mInfo.city}` : "";
   try{ Sky.set({ sky: skyKey, kind: kindOf(cur.weather_code), day: !!cur.is_day, cloud: cur.cloud_cover ?? 50, wind: cur.wind_speed_10m,
     precip: Math.max(cur.precipitation || 0, nc0 ? (nc0[0].v || 0) * 4 : 0, H.precipitation[idx] || 0), moonTh: moonInfo().th, still: cfg.anim === "static", off: cfg.anim === "off",
     scene: sceneNow, monument: monId, xmas: isXmas(), person: cfg.person, outfit: outfitOf(cur), warm: goldenHour(fc), month: new Date().getMonth() }); document.body.classList.toggle("land", cfg.scene !== "sky" && cfg.anim !== "off"); }catch(e){ console.error(e); }
@@ -2813,6 +2840,7 @@ function renderAll(){
   renderHeader(); renderSub();
   renderHero(fc, idx, d.warn); renderWarnings(d.warn); renderHourly(fc, idx); renderNowcast(fc); renderDaily(fc);
   renderDetails(fc, idx, d.aq);
+  clearTimeout(renderAll.ws); renderAll.ws = setTimeout(() => makeWidgetScenes(), 4000);
 }
 
 function nowcastInfo(fc){
@@ -3273,7 +3301,7 @@ function renderSettings(){
 
     <div class="set-sec">Aparência</div>
     <div class="set-row"><div>Design do app</div>${seg("design", [["classic", "Clássico"], ["glass", "Liquid Glass"]], cfg.design)}</div>
-    <div class="set-row"><div>Estilo dos widgets<small>Toca em ↻ no widget para aplicar já</small></div>${seg("wstyle", [["classic", "Clássico"], ["glass", "Vidro"]], cfg.wstyle)}</div>
+    <div class="set-row"><div>Estilo dos widgets<small>Toca em ↻ no widget para aplicar já</small></div><select class="sel" id="wstyleSel">${[["classic", "Clássico (cor do tempo)"], ["glass", "Vidro fosco escuro"], ["frost", "Vidro fosco claro"], ["scene", "Imagem da cena"]].map(([v, l]) => `<option value="${v}"${cfg.wstyle === v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
     <div class="set-row"><div>Posição da temperatura</div>${seg("layout", [["corner", "Canto"], ["center", "Centro"]], cfg.layout)}</div>
     <div class="set-row"><div>Decoração de Natal<small>Automática: de 1 a 26 de dezembro</small></div><select class="sel" id="xmasSel">${[["auto", "Automática"], ["on", "Sempre"], ["off", "Desligada"]].map(([v, l]) => `<option value="${v}"${(cfg.xmas || "auto") === v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
     <div class="set-row"><div>Cena de fundo<small>Muda com o tempo, a hora e a estação</small></div><select class="sel" id="sceneSel">${SCENES.map(([v, l]) => `<option value="${v}"${cfg.scene === v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
@@ -3313,7 +3341,7 @@ $("#setBody").addEventListener("click", e => {
   if(e.target.closest("#clearCache")){ state.pc = {}; ["ceu.cache", "ceu.ipmaD"].forEach(k => store.set(k, null)); toast("Cache limpa"); refresh(true); return; }
   if(e.target.closest("#resetAll")){ Object.assign(cfg, JSON.parse(JSON.stringify(CFG0))); saveCfg(); applyDesign(); state.source = "auto"; store.set("ceu.source", "auto"); renderSettings(); setupSync(); saveWidget(); if(state.data) renderAll(); toast("Definições repostas"); }
 });
-$("#setBody").addEventListener("change", e => { if(e.target.id === "sceneSel"){ cfg.scene = e.target.value; saveCfg(); renderSettings(); if(state.data) renderAll(); return; } if(e.target.id === "xmasSel"){ cfg.xmas = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "monSel"){ cfg.monument = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "wplace"){ cfg.wplace = e.target.value; saveCfg(); saveWidget(); toast("Local dos widgets atualizado"); } });
+$("#setBody").addEventListener("change", e => { if(e.target.id === "sceneSel"){ cfg.scene = e.target.value; saveCfg(); renderSettings(); if(state.data) renderAll(); return; } if(e.target.id === "wstyleSel"){ cfg.wstyle = e.target.value; saveCfg(); saveWidget(); if(cfg.wstyle === "scene") makeWidgetScenes(true); toast("Estilo dos widgets atualizado"); return; } if(e.target.id === "xmasSel"){ cfg.xmas = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "monSel"){ cfg.monument = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "wplace"){ cfg.wplace = e.target.value; saveCfg(); saveWidget(); toast("Local dos widgets atualizado"); } });
 
 /* ---------- puxar para atualizar ---------- */
 (() => {
