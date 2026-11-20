@@ -3304,7 +3304,7 @@ const SCENES = [["monument", "Monumentos do país"], ["lake", "Lago e montanhas"
 const seg = (key, opts, val) => `<div class="seg" data-k="${key}">${opts.map(([v, l]) => `<button data-v="${v}" class="${String(v) === String(val) ? "on" : ""}">${l}</button>`).join("")}</div>`;
 function fmtWhen(ts){ if(!ts) return "nunca"; const d = new Date(ts), now = new Date(); const hm = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   return d.toDateString() === now.toDateString() ? `hoje às ${hm}` : `${d.getDate()} ${MON[d.getMonth()]} às ${hm}`; }
-function renderSettings(){
+function renderSettings(){ setTimeout(glassDraw, 30);
   const f = favs();
   const wopts = [`<option value="gps"${cfg.wplace === "gps" ? " selected" : ""}>Minha localização</option>`].concat(f.map(p => `<option value="${pkey(p)}"${cfg.wplace === pkey(p) ? " selected" : ""}>${esc(p.name)}</option>`)).join("");
   $("#setBody").innerHTML = `
@@ -3331,6 +3331,7 @@ function renderSettings(){
     <div class="set-row"><div>Design do app</div>${seg("design", [["classic", "Clássico"], ["glass", "Liquid Glass"]], cfg.design)}</div>
     ${IS_DESK ? `<div class="set-row"><div>Widget no ambiente de trabalho<small>Arrasta para mover; botão direito para estilo, tamanho e arranque</small></div><select class="sel" id="dwSel"><option value="on"${cfg.dwidget !== false ? " selected" : ""}>Mostrar</option><option value="off"${cfg.dwidget === false ? " selected" : ""}>Esconder</option></select></div>` : ""}
     <div class="set-row"><div>Estilo dos widgets<small>Toca em ↻ no widget para aplicar já</small></div><select class="sel" id="wstyleSel">${[["classic", "Clássico (cor do tempo)"], ["glass", "Vidro fosco escuro"], ["frost", "Vidro fosco claro"], ["scene", "Imagem da cena"]].map(([v, l]) => `<option value="${v}"${cfg.wstyle === v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
+    ${(IS_ANDROID || window.__DEMO__) && cfg.wstyle === "glass" ? glassSection() : ""}
     <div class="set-row"><div>Posição da temperatura</div>${seg("layout", [["corner", "Canto"], ["center", "Centro"]], cfg.layout)}</div>
     <div class="set-row"><div>Decoração de Natal<small>Automática: de 1 a 26 de dezembro</small></div><select class="sel" id="xmasSel">${[["auto", "Automática"], ["on", "Sempre"], ["off", "Desligada"]].map(([v, l]) => `<option value="${v}"${(cfg.xmas || "auto") === v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
     <div class="set-row"><div>Cena de fundo<small>Muda com o tempo, a hora e a estação</small></div><select class="sel" id="sceneSel">${SCENES.map(([v, l]) => `<option value="${v}"${cfg.scene === v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
@@ -3370,7 +3371,7 @@ $("#setBody").addEventListener("click", e => {
   if(e.target.closest("#clearCache")){ state.pc = {}; ["ceu.cache", "ceu.ipmaD"].forEach(k => store.set(k, null)); toast("Cache limpa"); refresh(true); return; }
   if(e.target.closest("#resetAll")){ Object.assign(cfg, JSON.parse(JSON.stringify(CFG0))); saveCfg(); applyDesign(); state.source = "auto"; store.set("ceu.source", "auto"); renderSettings(); setupSync(); saveWidget(); if(state.data) renderAll(); toast("Definições repostas"); }
 });
-$("#setBody").addEventListener("change", e => { if(e.target.id === "sceneSel"){ cfg.scene = e.target.value; saveCfg(); renderSettings(); if(state.data) renderAll(); return; } if(e.target.id === "dwSel"){ cfg.dwidget = e.target.value === "on"; saveCfg(); TAURI.invoke(cfg.dwidget ? "show_desktop_widget" : "hide_desktop_widget").catch(() => {}); return; } if(e.target.id === "wstyleSel"){ cfg.wstyle = e.target.value; saveCfg(); saveWidget(); if(cfg.wstyle === "scene") makeWidgetScenes(true); toast("Estilo dos widgets atualizado"); return; } if(e.target.id === "xmasSel"){ cfg.xmas = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "monSel"){ cfg.monument = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "wplace"){ cfg.wplace = e.target.value; saveCfg(); saveWidget(); toast("Local dos widgets atualizado"); } });
+$("#setBody").addEventListener("change", e => { if(e.target.id === "sceneSel"){ cfg.scene = e.target.value; saveCfg(); renderSettings(); if(state.data) renderAll(); return; } if(e.target.id === "dwSel"){ cfg.dwidget = e.target.value === "on"; saveCfg(); TAURI.invoke(cfg.dwidget ? "show_desktop_widget" : "hide_desktop_widget").catch(() => {}); return; } if(e.target.id === "glFile"){ glassLoadFile(e.target.files && e.target.files[0]); return; } if(e.target.id === "glType"){ GL.type = e.target.value; glassDraw(); return; } if(e.target.id === "wstyleSel"){ cfg.wstyle = e.target.value; saveCfg(); saveWidget(); renderSettings(); if(cfg.wstyle === "scene") makeWidgetScenes(true); toast("Estilo dos widgets atualizado"); return; } if(e.target.id === "xmasSel"){ cfg.xmas = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "monSel"){ cfg.monument = e.target.value; saveCfg(); if(state.data) renderAll(); return; } if(e.target.id === "wplace"){ cfg.wplace = e.target.value; saveCfg(); saveWidget(); toast("Local dos widgets atualizado"); } });
 
 /* ---------- puxar para atualizar ---------- */
 (() => {
@@ -3383,6 +3384,48 @@ $("#setBody").addEventListener("change", e => { if(e.target.id === "sceneSel"){ 
     else { ptr.style.transform = ""; ptr.style.opacity = 0; } });
 })();
 
+/* ---------- Vidro real dos widgets Android ----------
+   O Android não deixa uma app desfocar o papel de parede por trás de um widget. Para imitar o vidro da Honor,
+   o utilizador escolhe uma captura do ecrã inicial, marca onde está cada widget e o app gera o recorte
+   desfocado e iluminado que o widget usa como fundo (fica alinhado com o papel de parede real). */
+const GL_TYPES = [["compact", "Compacto", .06, .10, .88, .17], ["small", "Agora", .06, .10, .42, .19], ["hours", "Próximas horas", .06, .10, .88, .2], ["days", "Próximos dias", .06, .32, .88, .2], ["clock", "Relógio", .06, .10, .88, .2], ["scene", "Cena", .06, .10, .88, .2]];
+const GL = { type: "compact", img: null, drag: null };
+function glRect(t){ const d = GL_TYPES.find(x => x[0] === t) || GL_TYPES[0], g = (cfg.glass || {})[t]; return g || { x: d[2], y: d[3], w: d[4], h: d[5] }; }
+function glassSection(){
+  const has = !!store.get("ceu.wall"), r = glRect(GL.type);
+  return `<div class="set-sec">Vidro real (imita o da Honor)</div>
+    <div class="set-row"><div>Captura do ecrã inicial<small>${has ? "Imagem guardada. Podes trocar quando mudares o papel de parede." : "Tira uma captura do ecrã inicial sem widgets na zona onde os vais pôr e escolhe-a aqui."}</small></div><label class="btn" style="cursor:pointer">Escolher<input type="file" id="glFile" accept="image/*" hidden></label></div>
+    ${has ? `<div class="set-row"><div>Widget<small>Arrasta o retângulo para onde está o widget no ecrã</small></div><select class="sel" id="glType">${GL_TYPES.map(t => `<option value="${t[0]}"${GL.type === t[0] ? " selected" : ""}>${t[1]}</option>`).join("")}</select></div>
+    <div style="display:flex;gap:12px;align-items:flex-start;margin:6px 0 4px"><canvas id="glCv" style="width:46%;border-radius:14px;touch-action:none;background:#000"></canvas>
+      <div style="flex:1;font-size:13px;color:var(--dim)">Largura<input type="range" id="glW" min="20" max="100" value="${Math.round(r.w * 100)}" style="width:100%"><br>Altura<input type="range" id="glH" min="5" max="45" value="${Math.round(r.h * 100)}" style="width:100%">
+      <p style="margin:8px 0 0;font-size:12px">Desliza para mover; ajusta até o retângulo cobrir o widget. Repete para cada widget que tiveres.</p></div></div>
+    <div class="set-row"><div>Aplicar o vidro<small>Gera o fundo desfocado de cada widget</small></div><button class="btn" id="glApply">Aplicar</button></div>` : ""}`;
+}
+function glassLoadFile(f){ if(!f) return; const rd = new FileReader(); rd.onload = () => { const im = new Image(); im.onload = () => {
+    const w = Math.min(1080, im.width), h = Math.round(im.height * w / im.width), c = document.createElement("canvas"); c.width = w; c.height = h; c.getContext("2d").drawImage(im, 0, 0, w, h);
+    store.set("ceu.wall", c.toDataURL("image/jpeg", .86)); GL.img = null; renderSettings(); toast("Captura guardada"); }; im.src = rd.result; }; rd.readAsDataURL(f); }
+function glassImg(cb){ if(GL.img) return cb(GL.img); const u = store.get("ceu.wall"); if(!u) return; const im = new Image(); im.onload = () => { GL.img = im; cb(im); }; im.src = u; }
+function glassDraw(){ const cv = $("#glCv"); if(!cv) return; glassImg(im => { const W = cv.clientWidth || 160, H = Math.round(W * im.height / im.width); cv.width = W * 2; cv.height = H * 2; cv.style.height = H + "px";
+  const x = cv.getContext("2d"); x.setTransform(2, 0, 0, 2, 0, 0); x.drawImage(im, 0, 0, W, H); x.fillStyle = "rgba(0,0,0,.35)"; x.fillRect(0, 0, W, H);
+  GL_TYPES.forEach(t => { const r = glRect(t[0]), on = t[0] === GL.type; if(!on && !(cfg.glass || {})[t[0]]) return; x.save(); x.beginPath(); x.roundRect(r.x * W, r.y * H, r.w * W, r.h * H, 8);
+    if(on){ x.clip(); x.drawImage(im, 0, 0, W, H); x.restore(); x.strokeStyle = "#8ab8ff"; x.lineWidth = 2; x.beginPath(); x.roundRect(r.x * W, r.y * H, r.w * W, r.h * H, 8); x.stroke(); }
+    else { x.strokeStyle = "rgba(255,255,255,.45)"; x.setLineDash([4, 3]); x.stroke(); x.restore(); } }); }); }
+function glSet(r){ cfg.glass = Object.assign({}, cfg.glass || {}, { [GL.type]: r }); saveCfg(); glassDraw(); }
+$("#setBody").addEventListener("pointerdown", e => { if(e.target.id !== "glCv") return; const b = e.target.getBoundingClientRect(), r = glRect(GL.type); GL.drag = { sx: e.clientX, sy: e.clientY, r: { ...r }, bw: b.width, bh: b.height }; e.target.setPointerCapture(e.pointerId); });
+$("#setBody").addEventListener("pointermove", e => { if(!GL.drag || e.target.id !== "glCv") return; const d = GL.drag, r = { ...d.r }; r.x = Math.max(0, Math.min(1 - r.w, d.r.x + (e.clientX - d.sx) / d.bw)); r.y = Math.max(0, Math.min(1 - r.h, d.r.y + (e.clientY - d.sy) / d.bh)); glSet(r); });
+$("#setBody").addEventListener("pointerup", () => { GL.drag = null; });
+$("#setBody").addEventListener("input", e => { if(e.target.id !== "glW" && e.target.id !== "glH") return; const r = { ...glRect(GL.type) }; if(e.target.id === "glW"){ r.w = e.target.value / 100; r.x = Math.min(r.x, 1 - r.w); } else { r.h = e.target.value / 100; r.y = Math.min(r.y, 1 - r.h); } glSet(r); });
+/* recorte desfocado: desfoque forte, mais saturação e brilho, véu branco leve — como o vidro do sistema */
+function glassMake(type, im){ const r = glRect(type), W = im.width, H = im.height, sx = r.x * W, sy = r.y * H, sw = r.w * W, sh = r.h * H, ow = 720, oh = Math.round(ow * sh / sw), k = ow / sw;
+  const c = document.createElement("canvas"); c.width = ow; c.height = oh; const x = c.getContext("2d"), pad = 60;
+  x.filter = "blur(30px) saturate(1.3) brightness(1.04)"; x.drawImage(im, sx - pad / k, sy - pad / k, sw + 2 * pad / k, sh + 2 * pad / k, -pad, -pad, ow + 2 * pad, oh + 2 * pad); x.filter = "none";
+  const g = x.createLinearGradient(0, 0, 0, oh); g.addColorStop(0, "rgba(255,255,255,.11)"); g.addColorStop(1, "rgba(255,255,255,.05)"); x.fillStyle = g; x.fillRect(0, 0, ow, oh);
+  const rg = x.createRadialGradient(ow * .1, 0, 0, ow * .1, 0, ow * .7); rg.addColorStop(0, "rgba(255,255,255,.14)"); rg.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = rg; x.fillRect(0, 0, ow, oh);
+  return c.toDataURL("image/jpeg", .9); }
+async function glassApply(){ glassImg(async im => { const types = GL_TYPES.map(t => t[0]).filter(t => (cfg.glass || {})[t] || t === GL.type); let n = 0;
+  for(const t of types){ const url = glassMake(t, im); if(TAURI){ try{ await TAURI.invoke("save_widget_image", { name: `ceu-glass-${t}.jpg`, b64: url }); n++; }catch(e){} } else { n++; if(window.__DEMO__){ const w = window.open(); if(w) w.document.write(`<img src="${url}" style="width:100%">`); } } }
+  saveWidget(); toast(n ? "Vidro aplicado — toca no widget para atualizar" : "Não foi possível guardar"); }); }
+$("#setBody").addEventListener("click", e => { if(e.target.id === "glApply") glassApply(); });
 /* ---------- widget no ambiente de trabalho ---------- */
 const DW = Object.assign({ style: "scene" }, store.get("ceu.dw") || {});
 function dwApply(){ const h = document.documentElement; ["scene", "glass", "dark"].forEach(k => h.classList.toggle("dw-" + k, DW.style === k)); h.classList.toggle("dw-tiny", innerHeight < 165);

@@ -61,6 +61,16 @@ object CeuWidgetData {
         }
     } catch (e: Throwable) { null }
 
+    /* fundo de vidro gerado pelo app a partir da captura do ecrã inicial (recorte desfocado no sítio do widget) */
+    private fun glassBitmap(ctx: Context, type: String): Bitmap? = try {
+        val f = settingsFile(ctx)?.parentFile?.let { File(it, "ceu-glass-$type.jpg") }
+        if (f == null || !f.exists()) null else {
+            val o = BitmapFactory.Options(); o.inPreferredConfig = Bitmap.Config.RGB_565
+            val b = BitmapFactory.decodeFile(f.absolutePath, o)
+            if (b != null && b.width > 720) Bitmap.createScaledBitmap(b, 720, (b.height * 720f / b.width).toInt(), true) else b
+        }
+    } catch (e: Throwable) { null }
+
     fun settings(ctx: Context): JSONObject? = try {
         settingsFile(ctx)?.readText()?.let { JSONObject(it) }
     } catch (e: Exception) { null }
@@ -193,9 +203,10 @@ object CeuWidgetData {
             bmp = sceneBitmap(ctx, if (type == "small") "s" else "w", code, day)
             if (bmp == null) st = "classic"
         }
+        if (st == "glass") bmp = glassBitmap(ctx, type)
         val light = st == "frost"
         when (st) {
-            "glass" -> v.setInt(R.id.w_root, "setBackgroundResource", R.drawable.wbg_glass)
+            "glass" -> v.setInt(R.id.w_root, "setBackgroundResource", if (bmp != null) R.drawable.wbg_round else R.drawable.wbg_glass)
             "frost" -> v.setInt(R.id.w_root, "setBackgroundResource", R.drawable.wbg_frost)
             "scene" -> v.setInt(R.id.w_root, "setBackgroundResource", R.drawable.wbg_round)
             else -> v.setInt(R.id.w_root, "setBackgroundResource", bg(code, day))
@@ -204,6 +215,7 @@ object CeuWidgetData {
             v.setImageViewBitmap(R.id.w_bg, bmp)
             v.setViewVisibility(R.id.w_bg, View.VISIBLE)
             v.setViewVisibility(R.id.w_scrim, View.VISIBLE)
+            v.setInt(R.id.w_scrim, "setBackgroundResource", if (st == "glass") R.drawable.wglass_sheen else R.drawable.wscrim)
         } else {
             v.setViewVisibility(R.id.w_bg, View.GONE)
             v.setViewVisibility(R.id.w_scrim, View.GONE)
