@@ -3403,7 +3403,7 @@ async function dwMenu(){
   const b = (k, v, l, on) => `<button data-${k}="${v}" class="${on ? "on" : ""}">${l}</button>`;
   m.innerHTML = `<div class="r"><i>Estilo</i>${b("st", "scene", "Cena", DW.style === "scene")}${b("st", "glass", "Vidro", DW.style === "glass")}${b("st", "dark", "Escuro", DW.style === "dark")}</div>
     <div class="r"><i>Tamanho</i>${b("sz", "300x165", "P", 0)}${b("sz", "380x210", "M", 0)}${b("sz", "480x260", "G", 0)}</div>
-    <div class="r"><i>Arranque</i>${b("au", auto ? "off" : "on", "Iniciar com o Windows", auto)}</div>
+    <div class="r"><i>Arranque</i>${b("au", auto ? "off" : "on", /Windows/i.test(navigator.userAgent) ? "Iniciar com o Windows" : "Iniciar com o computador", auto)}</div>
     <div class="r">${b("ac", "ref", "↻ Atualizar")}${b("ac", "open", "Abrir o Céu")}${b("ac", "hide", "Esconder")}${b("ac", "x", "Fechar menu")}</div>`;
   m.hidden = false;
 }

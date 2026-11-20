@@ -72,7 +72,8 @@ jobs:
                                    ("CeuWidgetHours", "ceu_widget_hours_info", "Céu · Próximas horas"),
                                    ("CeuWidgetDays", "ceu_widget_days_info", "Céu · Próximos dias"),
                                    ("CeuWidgetScene", "ceu_widget_scene_info", "Céu · Cena"),
-                                   ("CeuWidgetClock", "ceu_widget_clock_info", "Céu · Relógio")):
+                                   ("CeuWidgetClock", "ceu_widget_clock_info", "Céu · Relógio"),
+                                   ("CeuWidgetCompact", "ceu_widget_compact_info", "Céu · Compacto")):
               rec += f"""
                   <receiver android:name="{pkg}.{cls}" android:exported="false" android:label="{label}">
                       <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
@@ -129,9 +130,42 @@ jobs:
           path: src-tauri/target/release/bundle/nsis/*.exe
           if-no-files-found: error
 
+  linux:
+    name: Linux (AppImage e .deb)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: Bibliotecas do sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev patchelf file
+      - name: Número da versão (0.1.N, sobe a cada compilação)
+        run: |
+          node -e "const f='src-tauri/tauri.conf.json',j=JSON.parse(require('fs').readFileSync(f,'utf8'));j.version='0.1.${{ github.run_number }}';require('fs').writeFileSync(f,JSON.stringify(j,null,1))"
+      - name: Instalar dependências
+        run: npm install
+      - name: Ícones do app
+        run: npx tauri icon src-tauri/icons/icon.png
+      - name: Compilar
+        run: npx tauri build --bundles appimage,deb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Ceu-Linux
+          path: |
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/deb/*.deb
+          if-no-files-found: error
+
   publicar:
     name: Publicar em Releases
-    needs: [android, windows]
+    needs: [android, windows, linux]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -142,6 +176,8 @@ jobs:
           mkdir -p saida
           find arquivos -name "*.apk" | head -1 | xargs -I{} cp {} "saida/Ceu-Android.apk"
           find arquivos -name "*-setup.exe" | head -1 | xargs -I{} cp {} "saida/Ceu-Windows-instalador.exe"
+          find arquivos -name "*.AppImage" | head -1 | xargs -I{} cp {} "saida/Ceu-Linux.AppImage"
+          find arquivos -name "*.deb" | head -1 | xargs -I{} cp {} "saida/Ceu-Linux.deb"
           ls -la saida
       - uses: softprops/action-gh-release@v2
         with:
@@ -151,9 +187,12 @@ jobs:
             Versão 0.1.${{ github.run_number }} (commit ${{ github.sha }}).
             - **Android:** `Ceu-Android.apk` — no Obtainium, use o endereço do repositório para receber as atualizações sozinho.
             - **Windows:** `Ceu-Windows-instalador.exe`.
+            - **Linux:** `Ceu-Linux.AppImage` (qualquer distribuição) ou `Ceu-Linux.deb` (Debian/Ubuntu/Mint/Pop!_OS).
             Links fixos (sempre a versão mais nova):
             - https://github.com/${{ github.repository }}/releases/latest/download/Ceu-Android.apk
             - https://github.com/${{ github.repository }}/releases/latest/download/Ceu-Windows-instalador.exe
+            - https://github.com/${{ github.repository }}/releases/latest/download/Ceu-Linux.AppImage
+            - https://github.com/${{ github.repository }}/releases/latest/download/Ceu-Linux.deb
           prerelease: false
           make_latest: true
           files: saida/*

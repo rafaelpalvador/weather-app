@@ -10,6 +10,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.view.View
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.widget.RemoteViews
 import org.json.JSONArray
 import org.json.JSONObject
@@ -178,6 +181,7 @@ object CeuWidgetData {
         "small" -> R.layout.ceu_widget_small
         "scene" -> R.layout.ceu_widget_scene
         "clock" -> R.layout.ceu_widget_clock
+        "compact" -> R.layout.ceu_widget_compact
         else -> R.layout.ceu_widget_wide
     }
 
@@ -213,6 +217,11 @@ object CeuWidgetData {
         val tint = if (light) Color.parseColor("#FF2C3648") else Color.TRANSPARENT
         v.setInt(R.id.w_icon, "setColorFilter", tint)
         v.setInt(R.id.w_refresh, "setColorFilter", tint)
+        if (type == "compact") {
+            v.setInt(R.id.w_pin, "setColorFilter", tint)
+            v.setTextColor(R.id.w_hilo, c1)
+            for (k in 0 until 5) { v.setTextColor(CELLS[k][0], c2); v.setTextColor(CELLS[k][2], c1); v.setInt(CELLS[k][1], "setColorFilter", tint) }
+        }
         if (type == "hours" || type == "days") for (cell in CELLS) {
             v.setTextColor(cell[0], c3); v.setTextColor(cell[2], c1)
             v.setTextColor(cell[3], if (light) Color.parseColor("#FF2F6FD0") else Color.parseColor("#FF8CC8FF"))
@@ -229,7 +238,7 @@ object CeuWidgetData {
         }
         val cls = when (type) {
             "small" -> CeuWidgetSmall::class.java; "hours" -> CeuWidgetHours::class.java; "scene" -> CeuWidgetScene::class.java
-            "clock" -> CeuWidgetClock::class.java; else -> CeuWidgetDays::class.java
+            "clock" -> CeuWidgetClock::class.java; "compact" -> CeuWidgetCompact::class.java; else -> CeuWidgetDays::class.java
         }
         val rf = Intent(ctx, cls).setAction(ACTION_REFRESH)
         v.setOnClickPendingIntent(R.id.w_refresh, PendingIntent.getBroadcast(ctx, type.hashCode(), rf, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
@@ -267,7 +276,20 @@ object CeuWidgetData {
         v.setTextViewText(R.id.w_cond, cond(code, day))
         v.setTextViewText(R.id.w_hilo, if (type == "clock") "↑${deg(tmax.optDouble(d0))} ↓${deg(tmin.optDouble(d0))}" else "Máx. ${deg(tmax.optDouble(d0))}  Mín. ${deg(tmin.optDouble(d0))}")
 
-        if (type == "hours") {
+        if (type == "compact") {
+            val lo = deg(tmin.optDouble(d0)); val hi = deg(tmax.optDouble(d0))
+            val sp = SpannableString("$lo $hi")
+            sp.setSpan(ForegroundColorSpan(if (style == "frost") Color.parseColor("#8018202E") else Color.parseColor("#B3FFFFFF")), 0, lo.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            v.setTextViewText(R.id.w_hilo, sp)
+            val hT = h.getJSONArray("temperature_2m"); val hC = h.getJSONArray("weather_code"); val hD = h.getJSONArray("is_day")
+            for (k in 0 until 5) {
+                val i = i0 + k
+                if (i >= ht.length()) break
+                v.setTextViewText(CELLS[k][0], ht.optString(i).substring(11, 16))
+                v.setImageViewResource(CELLS[k][1], icon(hC.optInt(i), hD.optInt(i, 1) == 1))
+                v.setTextViewText(CELLS[k][2], deg(hT.optDouble(i)))
+            }
+        } else if (type == "hours") {
             val hT = h.getJSONArray("temperature_2m"); val hC = h.getJSONArray("weather_code")
             val hD = h.getJSONArray("is_day"); val hP = h.getJSONArray("precipitation_probability")
             for (k in CELLS.indices) {
@@ -308,7 +330,8 @@ object CeuWidgetData {
             Pair(CeuWidgetHours::class.java, "hours"),
             Pair(CeuWidgetDays::class.java, "days"),
             Pair(CeuWidgetScene::class.java, "scene"),
-            Pair(CeuWidgetClock::class.java, "clock")
+            Pair(CeuWidgetClock::class.java, "clock"),
+            Pair(CeuWidgetCompact::class.java, "compact")
         )
         for ((cls, type) in all) {
             val ids = mgr.getAppWidgetIds(ComponentName(ctx, cls))
@@ -350,3 +373,4 @@ class CeuWidgetHours : CeuWidgetBase()
 class CeuWidgetDays : CeuWidgetBase()
 class CeuWidgetScene : CeuWidgetBase()
 class CeuWidgetClock : CeuWidgetBase()
+class CeuWidgetCompact : CeuWidgetBase()
