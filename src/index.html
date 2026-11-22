@@ -172,6 +172,7 @@ html.dw-glass #sky,html.dw-dark #sky{display:none!important}
 html.dw-glass #dw{background:linear-gradient(150deg,rgba(255,255,255,.16),rgba(255,255,255,.04)),rgba(24,32,48,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 0 0 1px rgba(255,255,255,.12)}
 html.dw-glass #dw .dw-in,html.dw-dark #dw .dw-in{background:none}
 html.dw-dark #dw{background:linear-gradient(160deg,rgba(34,42,60,.94),rgba(16,20,30,.96));box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+html.kde.dw-glass #dw{background:none;box-shadow:none}html.kde #dw{border-radius:10px}
 html.wmode #dwMenu:not([hidden]){display:flex;position:fixed;inset:0;z-index:9;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;overflow:auto;background:rgba(14,18,28,.94);color:#fff;font-size:12px}
 #dwMenu .r{display:flex;align-items:center;gap:5px;flex-wrap:wrap}#dwMenu .r>i{font-style:normal;opacity:.6;width:52px}
 #dwMenu button{background:rgba(255,255,255,.1);border:0;color:#fff;border-radius:999px;padding:5px 10px;font:inherit;cursor:pointer}
@@ -414,6 +415,10 @@ const minutesOf = s => +s.slice(11,13) * 60 + +s.slice(14,16);
 const TAURI = window.__TAURI__ && window.__TAURI__.core ? window.__TAURI__.core : null;
 const WMODE = new URLSearchParams(location.search).has("widget"), IS_ANDROID = /Android/i.test(navigator.userAgent), IS_DESK = !!TAURI && !IS_ANDROID;
 if(WMODE) document.documentElement.classList.add("wmode");
+/* modo widget do KDE Plasma (plasmoide): local e estilo vêm das definições do widget */
+const QP = new URLSearchParams(location.search), KDE = QP.has("kde");
+const KDEP = KDE && QP.get("lat") && +QP.get("lat") !== 0 ? { lat: +QP.get("lat"), lon: +QP.get("lon"), name: QP.get("name") || "Local", region: "", cc: QP.get("cc") || "", auto: true } : null;
+if(KDE) document.documentElement.classList.add("kde");
 async function fetchJSON(url, ms = 12000){
   if(TAURI){
     const r = await TAURI.invoke("http_get", { url });
@@ -2669,6 +2674,8 @@ async function ipLocate(){
 }
 async function locate(){
   setSub("A obter a tua localização…", true);
+  if(KDEP) return KDEP;
+  if(KDE){ try{ return await ipLocate(); }catch(e){} }
   try{
     const pos = await getPosition();
     const { latitude: lat, longitude: lon } = pos.coords;
@@ -3427,7 +3434,7 @@ async function glassApply(){ glassImg(async im => { const types = GL_TYPES.map(t
   saveWidget(); toast(n ? "Vidro aplicado — toca no widget para atualizar" : "Não foi possível guardar"); }); }
 $("#setBody").addEventListener("click", e => { if(e.target.id === "glApply") glassApply(); });
 /* ---------- widget no ambiente de trabalho ---------- */
-const DW = Object.assign({ style: "scene" }, store.get("ceu.dw") || {});
+const DW = Object.assign({ style: "scene" }, store.get("ceu.dw") || {}); if(KDE && QP.get("style")) DW.style = QP.get("style");
 function dwApply(){ const h = document.documentElement; ["scene", "glass", "dark"].forEach(k => h.classList.toggle("dw-" + k, DW.style === k)); h.classList.toggle("dw-tiny", innerHeight < 165);
   if(TAURI && WMODE) TAURI.invoke("set_widget_glass", { on: DW.style === "glass" }).catch(() => {}); }
 function renderDesktopWidget(fc, idx){
@@ -3452,7 +3459,7 @@ async function dwMenu(){
 }
 if(WMODE){
   dwApply(); addEventListener("resize", () => document.documentElement.classList.toggle("dw-tiny", innerHeight < 165));
-  addEventListener("contextmenu", e => { e.preventDefault(); dwMenu(); });
+  addEventListener("contextmenu", e => { e.preventDefault(); if(!KDE) dwMenu(); });
   $("#dw").addEventListener("dblclick", () => TAURI && TAURI.invoke("open_main_window"));
   addEventListener("keydown", e => { if(e.key === "Escape") $("#dwMenu").hidden = true; });
   $("#dwMenu").addEventListener("click", async e => { const t = e.target.closest("button"); if(!t){ $("#dwMenu").hidden = true; return; } const d = t.dataset;

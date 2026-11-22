@@ -168,6 +168,9 @@ jobs:
     needs: [android, windows, linux]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          path: repo
       - uses: actions/download-artifact@v4
         with:
           path: arquivos
@@ -178,6 +181,10 @@ jobs:
           find arquivos -name "*-setup.exe" | head -1 | xargs -I{} cp {} "saida/Ceu-Windows-instalador.exe"
           find arquivos -name "*.AppImage" | head -1 | xargs -I{} cp {} "saida/Ceu-Linux.AppImage"
           find arquivos -name "*.deb" | head -1 | xargs -I{} cp {} "saida/Ceu-Linux.deb"
+          # widget do KDE Plasma 6: pacote .plasmoid com a página do app dentro
+          mkdir -p plasmoide && cp -r repo/kde-plasmoid/metadata.json repo/kde-plasmoid/contents plasmoide/
+          mkdir -p plasmoide/contents/ui/app && cp repo/src/index.html plasmoide/contents/ui/app/index.html
+          (cd plasmoide && zip -qr ../saida/Ceu-KDE.plasmoid metadata.json contents)
           ls -la saida
       - uses: softprops/action-gh-release@v2
         with:
@@ -188,11 +195,13 @@ jobs:
             - **Android:** `Ceu-Android.apk` — no Obtainium, use o endereço do repositório para receber as atualizações sozinho.
             - **Windows:** `Ceu-Windows-instalador.exe`.
             - **Linux:** `Ceu-Linux.AppImage` (qualquer distribuição) ou `Ceu-Linux.deb` (Debian/Ubuntu/Mint/Pop!_OS).
+            - **KDE Plasma 6:** `Ceu-KDE.plasmoid` (widget do ambiente de trabalho).
             Links fixos (sempre a versão mais nova):
             - https://github.com/${{ github.repository }}/releases/latest/download/Ceu-Android.apk
             - https://github.com/${{ github.repository }}/releases/latest/download/Ceu-Windows-instalador.exe
             - https://github.com/${{ github.repository }}/releases/latest/download/Ceu-Linux.AppImage
             - https://github.com/${{ github.repository }}/releases/latest/download/Ceu-Linux.deb
+            - https://github.com/${{ github.repository }}/releases/latest/download/Ceu-KDE.plasmoid
           prerelease: false
           make_latest: true
           files: saida/*

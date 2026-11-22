@@ -1,0 +1,16 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [ { "Name": "Céu" } ],
+        "Category": "Environment and Weather",
+        "Description": "Previsão do tempo com a cena animada do Céu (monumentos, chuva, neve, noite)",
+        "Description[pt]": "Previsão do tempo com a cena animada do Céu (monumentos, chuva, neve, noite)",
+        "Icon": "weather-few-clouds",
+        "Id": "pt.ceu.tempo",
+        "License": "MIT",
+        "Name": "Céu",
+        "Version": "1.0",
+        "Website": "https://github.com/rafaelpalvador/weather-app"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
