@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# atualizar-ceu — instala ou atualiza o Céu (AppImage) e o widget do KDE a partir das Releases do GitHub.
+# Uso: atualizar-ceu            (só descarrega se houver versão nova)
+#      atualizar-ceu --forcar   (descarrega sempre)
+set -u
+REPO="rafaelpalvador/weather-app"
+BASE="https://github.com/$REPO/releases/latest/download"
+RAW="https://raw.githubusercontent.com/$REPO/main"
+DIR="$HOME/Applications"
+APP="$DIR/Ceu-Linux.AppImage"
+APPS="$HOME/.local/share/applications"
+ICON="$HOME/.local/share/icons/ceu-tempo.png"
+mkdir -p "$DIR" "$APPS" "$(dirname "$ICON")" "$HOME/.local/bin"
+
+baixar() { # baixar URL DESTINO — tenta várias vezes e continua de onde parou
+  local tmp="$2.parcial" n
+  rm -f "$tmp"
+  for n in 1 2 3 4 5 6 7 8; do
+    if curl -fL --connect-timeout 15 -C - -o "$tmp" "$1"; then mv -f "$tmp" "$2"; return 0; fi
+    echo "  ligação interrompida, a continuar (tentativa $((n+1)))…"; sleep 2
+  done
+  rm -f "$tmp"; return 1
+}
+
+TAG=$(curl -sfL "https://api.github.com/repos/$REPO/releases/latest" | grep -m1 '"tag_name"' | cut -d'"' -f4)
+ATUAL=$(cat "$DIR/.ceu-versao" 2>/dev/null)
+
+if [ -n "$TAG" ] && [ "$TAG" = "$ATUAL" ] && [ -x "$APP" ] && [ "${1:-}" != "--forcar" ]; then
+  echo "✓ O Céu já está na versão mais recente ($TAG)."
+else
+  echo "↓ A descarregar o Céu ${TAG:-mais recente}…"
+  if ! baixar "$BASE/Ceu-Linux.AppImage" "$APP.novo"; then echo "✗ Não foi possível descarregar o Céu."; exit 1; fi
+  pkill -f "$APP" 2>/dev/null
+  find "$DIR" -maxdepth 1 -iname 'Ceu-Linux_*.AppImage' -delete 2>/dev/null   # cópias antigas do AppImageLauncher
+  mv -f "$APP.novo" "$APP" && chmod +x "$APP"
+  [ -n "$TAG" ] && echo "$TAG" > "$DIR/.ceu-versao"
+  echo "✓ Céu atualizado para ${TAG:-a versão mais recente}."
+fi
+
+# atalho no menu de aplicações
+[ -s "$ICON" ] || curl -sfL -o "$ICON" "$RAW/src-tauri/icons/icon.png"
+for f in "$APPS"/appimagekit_*C__u*.desktop "$APPS"/appimagekit_*Ceu*.desktop; do [ -e "$f" ] && rm -f "$f"; done
+cat > "$APPS/ceu.desktop" <<DESK
+[Desktop Entry]
+Type=Application
+Name=Céu
+GenericName=Previsão do tempo
+Comment=Previsão do tempo
+Exec=$APP
+Icon=$ICON
+Terminal=false
+Categories=Utility;
+Keywords=tempo;meteorologia;clima;weather;ceu;
+X-AppImage-Integrate=false
+DESK
+command -v kbuildsycoca6 >/dev/null && kbuildsycoca6 >/dev/null 2>&1
+echo "✓ Atalho \"Céu\" no menu de aplicações."
+
+# widget do KDE Plasma
+if command -v kpackagetool6 >/dev/null; then
+  if baixar "$BASE/Ceu-KDE.plasmoid" "/tmp/Ceu-KDE.plasmoid"; then
+    if [ -d "$HOME/.local/share/plasma/plasmoids/pt.ceu.tempo" ]; then
+      kpackagetool6 -t Plasma/Applet -u /tmp/Ceu-KDE.plasmoid >/dev/null 2>&1 && echo "✓ Widget do KDE atualizado (reinicia o Plasma ou termina a sessão para o ver: plasmashell --replace & disown)."
+    else
+      kpackagetool6 -t Plasma/Applet -i /tmp/Ceu-KDE.plasmoid >/dev/null 2>&1 && echo "✓ Widget do KDE instalado (procura \"Céu\" em Adicionar widgets)."
+    fi
+    rm -f /tmp/Ceu-KDE.plasmoid
+  fi
+fi
+
+# este próprio comando também se atualiza
+curl -sfL -o "$HOME/.local/bin/atualizar-ceu.novo" "$RAW/linux/atualizar-ceu" && chmod +x "$HOME/.local/bin/atualizar-ceu.novo" && mv -f "$HOME/.local/bin/atualizar-ceu.novo" "$HOME/.local/bin/atualizar-ceu"
