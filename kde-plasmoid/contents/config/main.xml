@@ -18,6 +18,8 @@
     <entry name="showHilo" type="Bool"><default>true</default></entry>
     <entry name="showHours" type="Bool"><default>true</default></entry>
     <entry name="nHours" type="Int"><default>6</default></entry>
+    <entry name="nhAuto" type="Bool"><default>true</default></entry>
+    <entry name="showDays" type="Bool"><default>true</default></entry>
     <entry name="scene" type="String"><default>monument</default></entry>
     <entry name="monument" type="String"><default>auto</default></entry>
     <entry name="anim" type="String"><default>on</default></entry>

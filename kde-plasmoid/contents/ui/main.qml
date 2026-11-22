@@ -15,7 +15,7 @@ PlasmoidItem {
     readonly property string style: c.style || "scene"
     readonly property string opts: JSON.stringify({
         r: c.radius, op: c.opacity, nh: c.nHours,
-        hours: c.showHours, upd: c.showUpd, hilo: c.showHilo, city: c.showCity,
+        hours: c.showHours, upd: c.showUpd, hilo: c.showHilo, city: c.showCity, days: c.showDays, nhAuto: c.nhAuto,
         scene: c.scene, monument: c.monument, anim: c.anim, xmas: c.xmas,
         source: c.source, sync: c.sync,
         units: { t: c.unitT, w: c.unitW, p: c.unitP, pr: c.unitPr },
@@ -43,8 +43,8 @@ PlasmoidItem {
     fullRepresentation: Item {
         Layout.preferredWidth: Kirigami.Units.gridUnit * 21
         Layout.preferredHeight: Kirigami.Units.gridUnit * 11
-        Layout.minimumWidth: Kirigami.Units.gridUnit * 8
-        Layout.minimumHeight: Kirigami.Units.gridUnit * 5
+        Layout.minimumWidth: Kirigami.Units.gridUnit * 6
+        Layout.minimumHeight: Kirigami.Units.gridUnit * 4
 
         WebEngineView {
             anchors.fill: parent

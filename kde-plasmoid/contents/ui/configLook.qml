@@ -14,6 +14,8 @@ KCM.SimpleKCM {
     property bool cfg_showHilo
     property bool cfg_showHours
     property int cfg_nHours
+    property bool cfg_nhAuto
+    property bool cfg_showDays
 
     Kirigami.FormLayout {
         Pick {
@@ -42,9 +44,22 @@ KCM.SimpleKCM {
         }
         RowLayout {
             Kirigami.FormData.label: "Opacidade do fundo:"
-            enabled: page.cfg_style === "dark" || page.cfg_style === "clear"
+            enabled: page.cfg_style !== "glass"
             QQC2.Slider { from: 10; to: 100; stepSize: 5; value: page.cfg_opacity; Layout.preferredWidth: Kirigami.Units.gridUnit * 12; onMoved: page.cfg_opacity = value }
             QQC2.Label { text: page.cfg_opacity + "%" }
+        }
+
+        QQC2.Label {
+            text: "Na Cena animada, a opacidade torna a paisagem mais transparente; o texto continua nítido."
+            opacity: 0.7
+            wrapMode: Text.Wrap
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 20
+        }
+        QQC2.Label {
+            text: "O conteúdo adapta-se sozinho ao tamanho: pequeno mostra só a temperatura, largo mostra as horas, alto mostra também os próximos dias."
+            opacity: 0.7
+            wrapMode: Text.Wrap
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 20
         }
 
         Kirigami.Separator { Kirigami.FormData.isSection: true; Kirigami.FormData.label: "Mostrar" }
@@ -52,9 +67,11 @@ KCM.SimpleKCM {
         QQC2.CheckBox { text: "Hora da última atualização"; checked: page.cfg_showUpd; onToggled: page.cfg_showUpd = checked }
         QQC2.CheckBox { text: "Máxima e mínima"; checked: page.cfg_showHilo; onToggled: page.cfg_showHilo = checked }
         QQC2.CheckBox { text: "Próximas horas"; checked: page.cfg_showHours; onToggled: page.cfg_showHours = checked }
+        QQC2.CheckBox { text: "Próximos dias (aparece quando o widget é alto)"; checked: page.cfg_showDays; onToggled: page.cfg_showDays = checked }
+        QQC2.CheckBox { text: "Número de horas automático pela largura"; enabled: page.cfg_showHours; checked: page.cfg_nhAuto; onToggled: page.cfg_nhAuto = checked }
         QQC2.SpinBox {
             Kirigami.FormData.label: "Número de horas:"
-            enabled: page.cfg_showHours
+            enabled: page.cfg_showHours && !page.cfg_nhAuto
             from: 3; to: 8
             value: page.cfg_nHours
             onValueModified: page.cfg_nHours = value

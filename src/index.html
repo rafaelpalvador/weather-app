@@ -203,7 +203,29 @@ html.kde #dw .dw-in{padding:calc(11px + var(--dwr,10px) * .14) calc(15px + var(-
 html.kde.dw-dark #dw{background:linear-gradient(160deg,rgba(34,42,60,var(--dwa,.94)),rgba(16,20,30,var(--dwa,.96)))}
 html.kde.dw-clear #sky{display:none!important}html.kde.dw-clear #dw .dw-in{background:none}
 html.kde.dw-clear #dw{background:linear-gradient(150deg,rgba(255,255,255,calc(var(--dwa,.85) * .28)),rgba(255,255,255,calc(var(--dwa,.85) * .1))),rgba(30,38,56,calc(var(--dwa,.85) * .35));box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 0 0 1px rgba(255,255,255,.18)}
-html.no-hours .dw-h,html.no-upd #dwUpd,html.no-hilo #dwHilo,html.no-city #dwCity{display:none!important}
+html.no-hours .dw-h,html.no-upd #dwUpd,html.no-hilo #dwHilo,html.no-city #dwCity,html.no-days .dw-d{display:none!important}
+html.kde.dw-scene #sky{opacity:var(--dwa,1)}
+html.wmode .dw-ico{display:none}.dw-ico svg{width:100%;height:100%}
+html.wmode .dw-t{font-size:calc(52px * var(--dwf,1))}
+html.wmode .dw-c{font-size:calc(13px * var(--dwf,1))}html.wmode .dw-top{font-size:calc(13px * var(--dwf,1))}
+html.wmode .dw-h{font-size:calc(11px * min(var(--dwf,1),1.3))}html.wmode .dw-h b{font-size:calc(12px * min(var(--dwf,1),1.3))}html.wmode .dw-h svg{width:calc(20px * min(var(--dwf,1),1.3));height:calc(20px * min(var(--dwf,1),1.3))}
+.dw-d{display:none}
+html.sz-tall .dw-d{display:flex;flex-direction:column;gap:2px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.18);font-size:calc(12.5px * min(var(--dwf,1),1.3))}
+html.sz-tall .dw-h{margin-top:auto}
+html.sz-tall.dw-scene .dw-d{background:rgba(10,14,22,.32);border:0;border-radius:calc(8px + var(--dwr,10px) * .25);padding:6px 10px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.dw-d div{display:grid;grid-template-columns:3.2em 1.6em 1fr 2.6em;align-items:center;gap:6px;height:28px}.dw-d span{text-transform:capitalize;opacity:.85}.dw-d svg{width:20px;height:20px}.dw-d i{font-style:normal;opacity:.65;text-align:right}.dw-d b{font-weight:500;text-align:right}
+/* pequeno: temperatura, ícone e condição */
+html.sz-s .dw-h,html.sz-xs .dw-h,html.sz-s .dw-d,html.sz-xs .dw-d{display:none!important}
+html.sz-s .dw-ico,html.sz-xs .dw-ico{display:block;width:calc(34px * var(--dwf,1));height:calc(34px * var(--dwf,1));order:2;margin-left:auto}
+html.sz-s .dw-mid{flex-wrap:wrap;margin-top:auto;gap:4px 10px}html.sz-s .dw-c{flex-basis:100%;order:3}
+html.sz-s .dw-t{font-size:calc(46px * var(--dwf,1) * 1.15)}
+html.sz-s.sz-sq .dw-in{justify-content:space-between}
+/* muito pequeno: só a temperatura e o ícone, ao centro */
+html.sz-xs .dw-top span,html.sz-xs .dw-c div+div{display:none}
+html.sz-xs .dw-in{justify-content:center;align-items:center;text-align:center;padding:6px!important}
+html.sz-xs .dw-mid{flex-direction:column;gap:2px;margin:0}html.sz-xs .dw-ico{order:0;margin:0 auto}
+html.sz-xs .dw-t{font-size:calc(40px * var(--dwf,1) * 1.2)}html.sz-xs .dw-c{font-size:11px}
+html.sz-xs .dw-top{justify-content:center;font-size:11px}
 html.wmode #dwMenu:not([hidden]){display:flex;position:fixed;inset:0;z-index:9;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;overflow:auto;background:rgba(14,18,28,.94);color:#fff;font-size:12px}
 #dwMenu .r{display:flex;align-items:center;gap:5px;flex-wrap:wrap}#dwMenu .r>i{font-style:normal;opacity:.6;width:52px}
 #dwMenu button{background:rgba(255,255,255,.1);border:0;color:#fff;border-radius:999px;padding:5px 10px;font:inherit;cursor:pointer}
@@ -357,7 +379,7 @@ footer{font-size:11px;color:var(--faint);text-align:center;line-height:1.6;margi
   <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="11" result="n"/><feGaussianBlur in="n" stdDeviation="2.5" result="nb"/>
   <feDisplacementMap in="SourceGraphic" in2="nb" scale="26" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 <canvas id="sky" aria-hidden="true"></canvas><div class="shade"></div>
-<div id="dw"><div class="dw-in"><div class="dw-top"><b id="dwCity">Céu</b><span id="dwUpd"></span></div><div class="dw-mid"><div id="dwTemp" class="dw-t">–</div><div class="dw-c"><div id="dwCond">A carregar…</div><div id="dwHilo"></div></div></div><div id="dwHours" class="dw-h"></div></div></div>
+<div id="dw"><div class="dw-in"><div class="dw-top"><b id="dwCity">Céu</b><span id="dwUpd"></span></div><div class="dw-mid"><span id="dwIco" class="dw-ico"></span><div id="dwTemp" class="dw-t">–</div><div class="dw-c"><div id="dwCond">A carregar…</div><div id="dwHilo"></div></div></div><div id="dwHours" class="dw-h"></div><div id="dwDays" class="dw-d"></div></div></div>
 <div id="dwMenu" hidden></div>
 <div class="ptr" id="ptr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></div>
 
@@ -3471,8 +3493,16 @@ $("#setBody").addEventListener("click", e => { if(e.target.id === "glApply") gla
 const DW = Object.assign({ style: "scene" }, store.get("ceu.dw") || {}); if(KDE && QP.get("style")) DW.style = QP.get("style");
 function dwShape(){ if(!KDE) return; const h = document.documentElement, rr = Math.max(0, Math.min(100, KO.r == null ? 30 : +KO.r));
   h.style.setProperty("--dwr", Math.round(rr / 100 * Math.min(innerWidth, innerHeight) / 2) + "px"); h.style.setProperty("--dwa", String(Math.max(0, Math.min(100, KO.op == null ? 85 : +KO.op)) / 100));
-  ["hours", "upd", "hilo", "city"].forEach(k => h.classList.toggle("no-" + k, KO[k] === false)); }
-function dwApply(){ const h = document.documentElement; dwShape(); ["scene", "glass", "dark", "clear"].forEach(k => h.classList.toggle("dw-" + k, DW.style === k)); h.classList.toggle("dw-tiny", innerHeight < 165);
+  ["hours", "upd", "hilo", "city", "days"].forEach(k => h.classList.toggle("no-" + k, KO[k] === false)); dwSize(); }
+/* conteúdo que se molda ao tamanho do widget */
+function dwSize(){ const h = document.documentElement, w = innerWidth, hh = innerHeight;
+  const sz = (w < 170 || hh < 100) ? "xs" : (w < 270 || hh < 150) ? "s" : "m";
+  ["xs", "s", "m"].forEach(k => h.classList.toggle("sz-" + k, sz === k));
+  h.classList.toggle("sz-tall", sz === "m" && hh >= 270 && hh / w > .55);
+  h.classList.toggle("sz-sq", w / hh < 1.25);
+  const f = sz === "m" ? Math.min(w / 380, hh / 210) : Math.min(w / 190, hh / 120); h.style.setProperty("--dwf", Math.max(.75, Math.min(1.8, f)).toFixed(3));
+  if(state && state.data && state.data.fc && WMODE){ clearTimeout(dwSize.t); dwSize.t = setTimeout(() => { const fc = state.data.fc, key = fc.current.time.slice(0, 13); let i = fc.hourly.time.findIndex(t => t.slice(0, 13) === key); renderDesktopWidget(fc, i < 0 ? 0 : i); }, 60); } }
+function dwApply(){ const h = document.documentElement; dwShape(); dwSize(); ["scene", "glass", "dark", "clear"].forEach(k => h.classList.toggle("dw-" + k, DW.style === k)); h.classList.toggle("dw-tiny", innerHeight < 165);
   if(TAURI && WMODE) TAURI.invoke("set_widget_glass", { on: DW.style === "glass" }).catch(() => {}); }
 function renderDesktopWidget(fc, idx){
   if(!WMODE) return; const c = fc.current, H = fc.hourly, D = fc.daily;
@@ -3482,9 +3512,15 @@ function renderDesktopWidget(fc, idx){
   $("#dwCond").textContent = condTxt(c.weather_code, c.is_day);
   const di = Math.max(0, D.time.indexOf(String(c.time || H.time[idx]).slice(0, 10)));
   $("#dwHilo").textContent = `↑ ${RT(D.temperature_2m_max[di])}°   ↓ ${RT(D.temperature_2m_min[di])}°`;
-  const nh = KDE ? Math.max(3, Math.min(8, +KO.nh || 6)) : 6; $("#dwHours").style.gridTemplateColumns = `repeat(${nh},1fr)`;
+  $("#dwIco").innerHTML = icon(c.weather_code, c.is_day);
+  const autoN = Math.max(3, Math.min(8, Math.floor((innerWidth - 30) / 60)));
+  const nh = KDE && KO.nh && !KO.nhAuto ? Math.max(3, Math.min(8, +KO.nh)) : autoN; $("#dwHours").style.gridTemplateColumns = `repeat(${nh},1fr)`;
   let h = ""; for(let k = 1; k <= nh && idx + k < H.time.length; k++){ const i = idx + k; h += `<div><span>${H.time[i].slice(11, 13)}h</span>${icon(H.weather_code[i], H.is_day[i])}<b>${RT(H.temperature_2m[i])}°</b></div>`; }
-  $("#dwHours").innerHTML = h; $("#dw").querySelectorAll("*").forEach(e => e.setAttribute("data-tauri-drag-region", "")); $("#dw").setAttribute("data-tauri-drag-region", "");
+  $("#dwHours").innerHTML = h;
+  const nd = Math.max(2, Math.min(7, Math.floor((innerHeight - 210 * (+getComputedStyle(document.documentElement).getPropertyValue("--dwf") || 1)) / 30)));
+  let dd = ""; for(let k = 0; k < nd && di + k < D.time.length; k++){ const i = di + k, wd = k ? new Date(D.time[i] + "T12:00").toLocaleDateString("pt-PT", { weekday: "short" }).replace(".", "").slice(0, 3) : "Hoje";
+    dd += `<div><span>${wd}</span>${icon(D.weather_code[i], 1)}<i>${RT(D.temperature_2m_min[i])}°</i><b>${RT(D.temperature_2m_max[i])}°</b></div>`; }
+  $("#dwDays").innerHTML = dd; $("#dw").querySelectorAll("*").forEach(e => e.setAttribute("data-tauri-drag-region", "")); $("#dw").setAttribute("data-tauri-drag-region", "");
 }
 async function dwMenu(){
   const m = $("#dwMenu"); let auto = false; try{ auto = await TAURI.invoke("plugin:autostart|is_enabled"); }catch(e){}
@@ -3496,7 +3532,7 @@ async function dwMenu(){
   m.hidden = false;
 }
 if(WMODE){
-  dwApply(); addEventListener("resize", () => { document.documentElement.classList.toggle("dw-tiny", innerHeight < 165); dwShape(); });
+  dwApply(); addEventListener("resize", () => { document.documentElement.classList.toggle("dw-tiny", innerHeight < 165); dwShape(); dwSize(); });
   addEventListener("contextmenu", e => { e.preventDefault(); if(!KDE) dwMenu(); });
   $("#dw").addEventListener("dblclick", () => TAURI && TAURI.invoke("open_main_window"));
   /* no KDE: clicar no widget pede ao plasmoide para abrir o app Céu */
