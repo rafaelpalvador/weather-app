@@ -187,7 +187,18 @@ async fn open_main_window(app: tauri::AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    // só uma janela do Céu: abrir de novo (ex.: clique no widget do KDE) traz a que já está aberta para a frente
+    #[cfg(desktop)]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        use tauri::Manager;
+        if let Some(w) = app.get_webview_window("main") {
+            let _ = w.show();
+            let _ = w.unminimize();
+            let _ = w.set_focus();
+        }
+    }));
+    builder
         .setup(|_app| {
             #[cfg(mobile)]
             _app.handle().plugin(tauri_plugin_geolocation::init())?;
@@ -197,22 +208,26 @@ pub fn run() {
                 use tauri::menu::{Menu, MenuItem};
                 use tauri::tray::TrayIconBuilder;
                 _app.handle().plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, Some(vec!["--widget"])))?;
-                // arranque com o Windows: só o widget, sem a janela principal
-                if std::env::args().any(|a| a == "--widget") {
-                    if let Some(m) = _app.get_webview_window("main") { let _ = m.hide(); }
+                // widget do ambiente de trabalho e ícone na bandeja: só no Windows (no Linux há o widget do KDE)
+                #[cfg(target_os = "windows")]
+                {
+                    // arranque com o Windows: só o widget, sem a janela principal
+                    if std::env::args().any(|a| a == "--widget") {
+                        if let Some(m) = _app.get_webview_window("main") { let _ = m.hide(); }
+                    }
+                    let show_w = MenuItem::with_id(_app, "widget", "Mostrar widget", true, None::<&str>)?;
+                    let open_m = MenuItem::with_id(_app, "open", "Abrir o Céu", true, None::<&str>)?;
+                    let quit = MenuItem::with_id(_app, "quit", "Sair", true, None::<&str>)?;
+                    let menu = Menu::with_items(_app, &[&show_w, &open_m, &quit])?;
+                    let mut tray = TrayIconBuilder::new().menu(&menu).tooltip("Céu").on_menu_event(|app, ev| match ev.id.as_ref() {
+                        "widget" => { let _ = desk::show(app); }
+                        "open" => desk::open_main(app),
+                        "quit" => app.exit(0),
+                        _ => {}
+                    });
+                    if let Some(ic) = _app.default_window_icon() { tray = tray.icon(ic.clone()); }
+                    tray.build(_app)?;
                 }
-                let show_w = MenuItem::with_id(_app, "widget", "Mostrar widget", true, None::<&str>)?;
-                let open_m = MenuItem::with_id(_app, "open", "Abrir o Céu", true, None::<&str>)?;
-                let quit = MenuItem::with_id(_app, "quit", "Sair", true, None::<&str>)?;
-                let menu = Menu::with_items(_app, &[&show_w, &open_m, &quit])?;
-                let mut tray = TrayIconBuilder::new().menu(&menu).tooltip("Céu").on_menu_event(|app, ev| match ev.id.as_ref() {
-                    "widget" => { let _ = desk::show(app); }
-                    "open" => desk::open_main(app),
-                    "quit" => app.exit(0),
-                    _ => {}
-                });
-                if let Some(ic) = _app.default_window_icon() { tray = tray.icon(ic.clone()); }
-                tray.build(_app)?;
             }
             Ok(())
         })

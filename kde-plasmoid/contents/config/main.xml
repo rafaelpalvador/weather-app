@@ -22,6 +22,8 @@
     <entry name="monument" type="String"><default>auto</default></entry>
     <entry name="anim" type="String"><default>on</default></entry>
     <entry name="xmas" type="String"><default>auto</default></entry>
+    <entry name="clickOpen" type="Bool"><default>true</default></entry>
+    <entry name="openCmd" type="String"><default></default></entry>
     <entry name="unitT" type="String"><default>c</default></entry>
     <entry name="unitW" type="String"><default>kmh</default></entry>
     <entry name="unitP" type="String"><default>mm</default></entry>

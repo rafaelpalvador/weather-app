@@ -12,6 +12,8 @@ KCM.SimpleKCM {
     property string cfg_cc
     property string cfg_source
     property int cfg_sync
+    property bool cfg_clickOpen
+    property string cfg_openCmd
     property var results: []
 
     function search() {
@@ -70,6 +72,21 @@ KCM.SimpleKCM {
             value: page.cfg_sync
             options: [ { t: "15 minutos", v: 15 }, { t: "30 minutos", v: 30 }, { t: "1 hora", v: 60 } ]
             onPicked: v => page.cfg_sync = v
+        }
+
+        Kirigami.Separator { Kirigami.FormData.isSection: true; Kirigami.FormData.label: "Clique no widget" }
+        QQC2.CheckBox { text: "Abrir o app Céu ao clicar no widget"; checked: page.cfg_clickOpen; onToggled: page.cfg_clickOpen = checked }
+        QQC2.TextField {
+            Kirigami.FormData.label: "Comando (opcional):"
+            enabled: page.cfg_clickOpen
+            text: page.cfg_openCmd
+            placeholderText: "Automático (procura o Céu instalado ou o AppImage)"
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 20
+            onTextEdited: page.cfg_openCmd = text
+        }
+        QQC2.Label {
+            text: "Ex.: /home/rafa/Applications/Ceu-Linux.AppImage"
+            opacity: 0.6
         }
     }
 }

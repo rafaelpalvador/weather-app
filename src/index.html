@@ -155,6 +155,31 @@ svg.wi{display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linec
 
 
 
+
+/* ===== Computador (ecrã largo): cena num painel à esquerda, informação em colunas à direita ===== */
+@media (min-width:980px){
+  html:not(.wmode) #sky{position:fixed;inset:20px auto auto 20px;width:calc(40vw - 10px)!important;height:calc(100vh - 40px)!important;border-radius:30px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+  html:not(.wmode) .shade{inset:20px auto auto 20px;width:calc(40vw - 10px);height:calc(100vh - 40px);border-radius:30px}
+  html:not(.wmode){background:radial-gradient(120% 80% at 100% 0%,rgba(70,90,130,.35),transparent 60%),var(--bg)!important}
+  .wrap{max-width:none;margin:0 0 0 calc(40vw + 10px);padding:20px 34px 40px 28px}
+  .hero,body.land .hero{position:fixed;left:20px;top:20px;bottom:20px;width:calc(40vw - 10px);min-height:0!important;padding:34px 36px 30px!important;z-index:2;pointer-events:none}
+  .hero *{pointer-events:auto}
+  #heroTxt,body.corner #heroTxt,body.corner.land #heroTxt{min-height:100%!important;height:100%}
+  body.corner .h-temp{font-size:clamp(110px,10vw,170px)}
+  .top{position:sticky;top:0;z-index:5;padding:6px 0 10px;background:linear-gradient(var(--bg) 70%,transparent)}
+  #app{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+  #app>.blk,#app>.cards,#warnings{margin-top:0!important}
+  #warnings,#hourly,#nowcast,#app>footer{grid-column:1/-1}
+  #warnings:empty{display:none}
+  #daily{grid-column:1}
+  #details{grid-column:2;margin-top:0}
+  .cards{grid-template-columns:1fr 1fr}
+  .sheet .pn{max-width:620px}
+}
+@media (min-width:1500px){
+  #app{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)}
+  .cards{grid-template-columns:1fr 1fr 1fr}
+}
 /* ===== Widget no ambiente de trabalho (janela própria, ?widget=1) ===== */
 #dw,#dwMenu{display:none}
 html.wmode,html.wmode body{background:transparent!important;overflow:hidden!important;min-height:0!important}
@@ -419,7 +444,7 @@ const hh = s => s.slice(11,13) + "h";
 const minutesOf = s => +s.slice(11,13) * 60 + +s.slice(14,16);
 
 const TAURI = window.__TAURI__ && window.__TAURI__.core ? window.__TAURI__.core : null;
-const WMODE = new URLSearchParams(location.search).has("widget"), IS_ANDROID = /Android/i.test(navigator.userAgent), IS_DESK = !!TAURI && !IS_ANDROID;
+const WMODE = new URLSearchParams(location.search).has("widget"), IS_ANDROID = /Android/i.test(navigator.userAgent), IS_DESK = !!TAURI && !IS_ANDROID && /Windows/i.test(navigator.userAgent);
 if(WMODE) document.documentElement.classList.add("wmode");
 /* modo widget do KDE Plasma (plasmoide): local e estilo vêm das definições do widget */
 const QP = new URLSearchParams(location.search), KDE = QP.has("kde");
@@ -511,7 +536,7 @@ const Sky = (() => {
   };
   const rnd = (a, b) => a + Math.random() * (b - a);
   function resize(){
-    DPR = Math.min(devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight;
+    DPR = Math.min(devicePixelRatio || 1, 1.5); W = WMODE ? innerWidth : (cv.clientWidth || innerWidth); H = WMODE ? innerHeight : (cv.clientHeight || innerHeight);
     if(WMODE){ const rh = Math.round(Math.max(H / .44, W * .8)); cv.style.height = rh + "px"; cv.style.top = -Math.round(rh * .3) + "px"; H = rh; }
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     if(P) build(); draw(performance.now());
@@ -3474,6 +3499,8 @@ if(WMODE){
   dwApply(); addEventListener("resize", () => { document.documentElement.classList.toggle("dw-tiny", innerHeight < 165); dwShape(); });
   addEventListener("contextmenu", e => { e.preventDefault(); if(!KDE) dwMenu(); });
   $("#dw").addEventListener("dblclick", () => TAURI && TAURI.invoke("open_main_window"));
+  /* no KDE: clicar no widget pede ao plasmoide para abrir o app Céu */
+  if(KDE && KO.click !== false){ $("#dw").style.cursor = "pointer"; $("#dw").addEventListener("click", () => { if($("#dwMenu").hidden) console.log("CEU_OPEN"); }); }
   addEventListener("keydown", e => { if(e.key === "Escape") $("#dwMenu").hidden = true; });
   $("#dwMenu").addEventListener("click", async e => { const t = e.target.closest("button"); if(!t){ $("#dwMenu").hidden = true; return; } const d = t.dataset;
     if(d.st){ DW.style = d.st; store.set("ceu.dw", DW); dwApply(); dwMenu(); }
