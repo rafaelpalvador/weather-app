@@ -4,10 +4,27 @@
       xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0 http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
   <kcfgfile name=""/>
   <group name="General">
-    <entry name="style" type="String"><default>scene</default></entry>
     <entry name="place" type="String"><default></default></entry>
     <entry name="lat" type="Double"><default>0</default></entry>
     <entry name="lon" type="Double"><default>0</default></entry>
     <entry name="cc" type="String"><default></default></entry>
+    <entry name="source" type="String"><default>auto</default></entry>
+    <entry name="sync" type="Int"><default>15</default></entry>
+    <entry name="style" type="String"><default>scene</default></entry>
+    <entry name="radius" type="Int"><default>30</default></entry>
+    <entry name="opacity" type="Int"><default>85</default></entry>
+    <entry name="showCity" type="Bool"><default>true</default></entry>
+    <entry name="showUpd" type="Bool"><default>true</default></entry>
+    <entry name="showHilo" type="Bool"><default>true</default></entry>
+    <entry name="showHours" type="Bool"><default>true</default></entry>
+    <entry name="nHours" type="Int"><default>6</default></entry>
+    <entry name="scene" type="String"><default>monument</default></entry>
+    <entry name="monument" type="String"><default>auto</default></entry>
+    <entry name="anim" type="String"><default>on</default></entry>
+    <entry name="xmas" type="String"><default>auto</default></entry>
+    <entry name="unitT" type="String"><default>c</default></entry>
+    <entry name="unitW" type="String"><default>kmh</default></entry>
+    <entry name="unitP" type="String"><default>mm</default></entry>
+    <entry name="unitPr" type="String"><default>hpa</default></entry>
   </group>
 </kcfg>

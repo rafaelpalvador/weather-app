@@ -172,7 +172,13 @@ html.dw-glass #sky,html.dw-dark #sky{display:none!important}
 html.dw-glass #dw{background:linear-gradient(150deg,rgba(255,255,255,.16),rgba(255,255,255,.04)),rgba(24,32,48,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 0 0 1px rgba(255,255,255,.12)}
 html.dw-glass #dw .dw-in,html.dw-dark #dw .dw-in{background:none}
 html.dw-dark #dw{background:linear-gradient(160deg,rgba(34,42,60,.94),rgba(16,20,30,.96));box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
-html.kde.dw-glass #dw{background:none;box-shadow:none}html.kde #dw{border-radius:10px}
+html.kde.dw-glass #dw{background:none;box-shadow:none}html.kde #dw{border-radius:var(--dwr,10px)}
+html.kde,html.kde body{height:100%}html.kde body{clip-path:inset(0 round var(--dwr,10px))}
+html.kde #dw .dw-in{padding:calc(11px + var(--dwr,10px) * .14) calc(15px + var(--dwr,10px) * .4) calc(10px + var(--dwr,10px) * .14)}
+html.kde.dw-dark #dw{background:linear-gradient(160deg,rgba(34,42,60,var(--dwa,.94)),rgba(16,20,30,var(--dwa,.96)))}
+html.kde.dw-clear #sky{display:none!important}html.kde.dw-clear #dw .dw-in{background:none}
+html.kde.dw-clear #dw{background:linear-gradient(150deg,rgba(255,255,255,calc(var(--dwa,.85) * .28)),rgba(255,255,255,calc(var(--dwa,.85) * .1))),rgba(30,38,56,calc(var(--dwa,.85) * .35));box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 0 0 1px rgba(255,255,255,.18)}
+html.no-hours .dw-h,html.no-upd #dwUpd,html.no-hilo #dwHilo,html.no-city #dwCity{display:none!important}
 html.wmode #dwMenu:not([hidden]){display:flex;position:fixed;inset:0;z-index:9;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;overflow:auto;background:rgba(14,18,28,.94);color:#fff;font-size:12px}
 #dwMenu .r{display:flex;align-items:center;gap:5px;flex-wrap:wrap}#dwMenu .r>i{font-style:normal;opacity:.6;width:52px}
 #dwMenu button{background:rgba(255,255,255,.1);border:0;color:#fff;border-radius:999px;padding:5px 10px;font:inherit;cursor:pointer}
@@ -419,6 +425,9 @@ if(WMODE) document.documentElement.classList.add("wmode");
 const QP = new URLSearchParams(location.search), KDE = QP.has("kde");
 const KDEP = KDE && QP.get("lat") && +QP.get("lat") !== 0 ? { lat: +QP.get("lat"), lon: +QP.get("lon"), name: QP.get("name") || "Local", region: "", cc: QP.get("cc") || "", auto: true } : null;
 if(KDE) document.documentElement.classList.add("kde");
+const KO = (() => { if(!KDE) return {}; try{ return JSON.parse(QP.get("o") || "{}"); }catch(e){ return {}; } })();
+/* no widget do KDE as definições vêm do próprio widget (Configurar) */
+if(KDE){ ["sync", "anim", "scene", "monument", "xmas"].forEach(k => { if(KO[k] != null && KO[k] !== "") cfg[k] = KO[k]; }); if(KO.units) cfg.units = { ...cfg.units, ...KO.units }; }
 async function fetchJSON(url, ms = 12000){
   if(TAURI){
     const r = await TAURI.invoke("http_get", { url });
@@ -2639,7 +2648,7 @@ const SOURCES = [
   { id: "auto", name: "Automático (recomendado)", desc: "O Open-Meteo combina os modelos de maior resolução para o teu local (ex.: AROME, ICON) com os modelos globais. Inclui chuva a cada 15 min." },
   { id: "ecmwf_ifs", alt: "ecmwf_ifs025", name: "ECMWF IFS 9 km", desc: "O modelo global europeu, considerado o mais fiável a médio prazo (3–10 dias). Menos detalhe local nas primeiras horas." }
 ];
-const state = { place: null, data: null, source: store.get("ceu.source", "auto"), req: 0, sel: store.get("ceu.sel", -1), pc: {} };
+const state = { place: null, data: null, source: KDE && KO.source ? KO.source : store.get("ceu.source", "auto"), req: 0, sel: store.get("ceu.sel", -1), pc: {} };
 
 /* ---------- localização ---------- */
 async function getPosition(){
@@ -3435,7 +3444,10 @@ async function glassApply(){ glassImg(async im => { const types = GL_TYPES.map(t
 $("#setBody").addEventListener("click", e => { if(e.target.id === "glApply") glassApply(); });
 /* ---------- widget no ambiente de trabalho ---------- */
 const DW = Object.assign({ style: "scene" }, store.get("ceu.dw") || {}); if(KDE && QP.get("style")) DW.style = QP.get("style");
-function dwApply(){ const h = document.documentElement; ["scene", "glass", "dark"].forEach(k => h.classList.toggle("dw-" + k, DW.style === k)); h.classList.toggle("dw-tiny", innerHeight < 165);
+function dwShape(){ if(!KDE) return; const h = document.documentElement, rr = Math.max(0, Math.min(100, KO.r == null ? 30 : +KO.r));
+  h.style.setProperty("--dwr", Math.round(rr / 100 * Math.min(innerWidth, innerHeight) / 2) + "px"); h.style.setProperty("--dwa", String(Math.max(0, Math.min(100, KO.op == null ? 85 : +KO.op)) / 100));
+  ["hours", "upd", "hilo", "city"].forEach(k => h.classList.toggle("no-" + k, KO[k] === false)); }
+function dwApply(){ const h = document.documentElement; dwShape(); ["scene", "glass", "dark", "clear"].forEach(k => h.classList.toggle("dw-" + k, DW.style === k)); h.classList.toggle("dw-tiny", innerHeight < 165);
   if(TAURI && WMODE) TAURI.invoke("set_widget_glass", { on: DW.style === "glass" }).catch(() => {}); }
 function renderDesktopWidget(fc, idx){
   if(!WMODE) return; const c = fc.current, H = fc.hourly, D = fc.daily;
@@ -3445,7 +3457,8 @@ function renderDesktopWidget(fc, idx){
   $("#dwCond").textContent = condTxt(c.weather_code, c.is_day);
   const di = Math.max(0, D.time.indexOf(String(c.time || H.time[idx]).slice(0, 10)));
   $("#dwHilo").textContent = `↑ ${RT(D.temperature_2m_max[di])}°   ↓ ${RT(D.temperature_2m_min[di])}°`;
-  let h = ""; for(let k = 1; k <= 6 && idx + k < H.time.length; k++){ const i = idx + k; h += `<div><span>${H.time[i].slice(11, 13)}h</span>${icon(H.weather_code[i], H.is_day[i])}<b>${RT(H.temperature_2m[i])}°</b></div>`; }
+  const nh = KDE ? Math.max(3, Math.min(8, +KO.nh || 6)) : 6; $("#dwHours").style.gridTemplateColumns = `repeat(${nh},1fr)`;
+  let h = ""; for(let k = 1; k <= nh && idx + k < H.time.length; k++){ const i = idx + k; h += `<div><span>${H.time[i].slice(11, 13)}h</span>${icon(H.weather_code[i], H.is_day[i])}<b>${RT(H.temperature_2m[i])}°</b></div>`; }
   $("#dwHours").innerHTML = h; $("#dw").querySelectorAll("*").forEach(e => e.setAttribute("data-tauri-drag-region", "")); $("#dw").setAttribute("data-tauri-drag-region", "");
 }
 async function dwMenu(){
@@ -3458,7 +3471,7 @@ async function dwMenu(){
   m.hidden = false;
 }
 if(WMODE){
-  dwApply(); addEventListener("resize", () => document.documentElement.classList.toggle("dw-tiny", innerHeight < 165));
+  dwApply(); addEventListener("resize", () => { document.documentElement.classList.toggle("dw-tiny", innerHeight < 165); dwShape(); });
   addEventListener("contextmenu", e => { e.preventDefault(); if(!KDE) dwMenu(); });
   $("#dw").addEventListener("dblclick", () => TAURI && TAURI.invoke("open_main_window"));
   addEventListener("keydown", e => { if(e.key === "Escape") $("#dwMenu").hidden = true; });
