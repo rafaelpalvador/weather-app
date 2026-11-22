@@ -167,18 +167,17 @@ svg.wi{display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linec
   #heroTxt,body.corner #heroTxt,body.corner.land #heroTxt{min-height:100%!important;height:100%}
   body.corner .h-temp{font-size:clamp(110px,10vw,170px)}
   .top{position:sticky;top:0;z-index:5;padding:6px 0 10px;background:linear-gradient(var(--bg) 70%,transparent)}
-  #app{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
-  #app>.blk,#app>.cards,#warnings{margin-top:0!important}
-  #warnings,#hourly,#nowcast,#app>footer{grid-column:1/-1}
-  #warnings:empty{display:none}
-  #daily{grid-column:1}
-  #details{grid-column:2;margin-top:0}
-  .cards{grid-template-columns:1fr 1fr}
+  /* colunas em "alvenaria": os cartões enchem as colunas de cima para baixo, sem buracos */
+  #app{display:block;column-count:2;column-gap:16px}
+  #app>*,#details>*{break-inside:avoid;-webkit-column-break-inside:avoid;width:100%;box-sizing:border-box;margin:0 0 16px!important}
+  #details{display:contents!important}
+  #details[hidden]{display:none!important}
+  #warnings,#hourly,#nowcast,#app>footer{column-span:all;-webkit-column-span:all}
+  #warnings:empty,#nowcast[hidden]{display:none!important}
   .sheet .pn{max-width:620px}
 }
 @media (min-width:1500px){
-  #app{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)}
-  .cards{grid-template-columns:1fr 1fr 1fr}
+  #app{column-count:3}
 }
 /* ===== Widget no ambiente de trabalho (janela própria, ?widget=1) ===== */
 #dw,#dwMenu{display:none}
