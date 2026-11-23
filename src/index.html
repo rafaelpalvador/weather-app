@@ -229,6 +229,41 @@ html.wmode #dwMenu:not([hidden]){display:flex;position:fixed;inset:0;z-index:9;f
 #dwMenu .r{display:flex;align-items:center;gap:5px;flex-wrap:wrap}#dwMenu .r>i{font-style:normal;opacity:.6;width:52px}
 #dwMenu button{background:rgba(255,255,255,.1);border:0;color:#fff;border-radius:999px;padding:5px 10px;font:inherit;cursor:pointer}
 #dwMenu button.on{background:#fff;color:#141821}#dwMenu button:hover{background:rgba(255,255,255,.2)}#dwMenu button.on:hover{background:#fff}
+
+/* ===== Mapa em ecrã inteiro ===== */
+#mapFab{position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom) + 20px);z-index:20;width:52px;height:52px;border-radius:50%;border:1px solid rgba(255,255,255,.3);color:#fff;cursor:pointer;
+  background:linear-gradient(150deg,rgba(120,150,220,.55),rgba(60,80,150,.55));box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 8px 24px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);display:grid;place-items:center}
+html.wmode #mapFab,html.mx-open #mapFab{display:none}
+#mapx{position:fixed;inset:0;z-index:60;background:#dfe6ea;overflow:hidden;color:#1b2230;font-size:13px}
+#mapx[hidden]{display:none}
+.mx-view{position:absolute;inset:0;touch-action:none;cursor:grab;overflow:hidden}
+.mx-view:active{cursor:grabbing}
+.mx-tiles,.mx-tiles img{position:absolute;left:0;top:0;pointer-events:none;user-select:none}
+.mx-tiles img{transform-origin:0 0;max-width:none}
+.mx-radar{opacity:.75}
+#mxField,#mxWind{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#mxField{image-rendering:auto;mix-blend-mode:multiply;opacity:.95}
+#mxPin{position:absolute;left:0;top:0;pointer-events:none;z-index:2}
+#mxPin .mx-bub{position:absolute;left:-30px;top:-74px;width:60px;height:60px;border-radius:50%;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25),inset 0 0 0 3px rgba(120,170,230,.35);display:flex;flex-direction:column;align-items:center;justify-content:center}
+#mxPin .mx-bub b{font-size:19px;font-weight:600;line-height:1}#mxPin .mx-bub small{font-size:9.5px;opacity:.6;margin-top:2px}
+#mxPin i{position:absolute;left:-5px;top:-8px;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+#mxPin span{position:absolute;left:-60px;width:120px;top:6px;text-align:center;font-size:11px;font-weight:600;color:#1b2230;text-shadow:0 0 3px #fff,0 0 3px #fff}
+.mx-b{width:46px;height:46px;border-radius:50%;border:0;background:rgba(255,255,255,.92);color:#1b2230;box-shadow:0 4px 16px rgba(0,0,0,.18);display:grid;place-items:center;cursor:pointer;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.mx-close{position:absolute;left:16px;top:calc(env(safe-area-inset-top) + 16px);z-index:3}
+.mx-side{position:absolute;right:16px;top:calc(env(safe-area-inset-top) + 90px);z-index:3;display:flex;flex-direction:column;gap:0;border-radius:23px;background:rgba(255,255,255,.92);box-shadow:0 4px 16px rgba(0,0,0,.18);overflow:hidden}
+.mx-side .mx-b{box-shadow:none;background:none;border-radius:0}.mx-side .mx-b+.mx-b{border-top:1px solid rgba(0,0,0,.08)}
+.mx-legend{position:absolute;left:16px;top:calc(env(safe-area-inset-top) + 74px);z-index:3;background:rgba(255,255,255,.92);border-radius:14px;padding:10px 12px 10px;box-shadow:0 4px 16px rgba(0,0,0,.15);min-width:96px}
+.mx-legend b{display:block;font-size:13px;font-weight:600;margin-bottom:8px}.mx-legend small{display:block;margin-top:4px;opacity:.6;font-size:10.5px}
+.mx-sc{display:flex;gap:8px;height:150px}.mx-sc i{width:5px;border-radius:3px}.mx-sc span{display:flex;flex-direction:column;justify-content:space-between;font-size:11px}.mx-sc em{font-style:normal;opacity:.75}
+.mx-menu{position:absolute;right:70px;top:calc(env(safe-area-inset-top) + 90px);z-index:4;background:rgba(255,255,255,.97);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.22);padding:6px;min-width:200px}
+.mx-menu button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;padding:11px 12px;border-radius:10px;font:inherit;font-size:15px;color:#1b2230;cursor:pointer;text-align:left}
+.mx-menu button:hover{background:rgba(0,0,0,.05)}.mx-menu button.on{font-weight:600}.mx-menu em{margin-left:auto;font-style:normal;color:#2f6db5}
+.mx-time[hidden]{display:none!important}
+.mx-time{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 34px);z-index:3;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.94);border-radius:999px;padding:8px 14px 8px 8px;box-shadow:0 4px 16px rgba(0,0,0,.18);max-width:560px;margin:0 auto}
+.mx-time button{width:34px;height:34px;border-radius:50%;border:0;background:#d6402e;color:#fff;font-size:12px;cursor:pointer;flex:none}
+.mx-time input{flex:1;accent-color:#2f6db5}.mx-time span{font-size:12.5px;font-weight:600;min-width:92px;text-align:right}
+.mx-attr{position:absolute;right:8px;bottom:calc(env(safe-area-inset-bottom) + 6px);font-size:9.5px;opacity:.6;z-index:3;pointer-events:none}
+.mx-load{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 22px);transform:translateX(-50%);background:rgba(255,255,255,.95);border-radius:999px;padding:7px 14px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.15);z-index:3}
 /* ===== Liquid Glass ===== */
 body.glass{--dim:rgba(255,255,255,.86);--faint:rgba(255,255,255,.66);--line:rgba(255,255,255,.18);--rain:#d4ecff}
 body.glass .shade{background:linear-gradient(180deg,rgba(0,0,0,.16) 0%,rgba(0,0,0,0) 26%,rgba(0,0,0,.04) 55%,rgba(6,8,14,.32) 100%)}
@@ -380,6 +415,7 @@ footer{font-size:11px;color:var(--faint);text-align:center;line-height:1.6;margi
 <canvas id="sky" aria-hidden="true"></canvas><div class="shade"></div>
 <div id="dw"><div class="dw-in"><div class="dw-top"><b id="dwCity">Céu</b><span id="dwUpd"></span></div><div class="dw-mid"><span id="dwIco" class="dw-ico"></span><div id="dwTemp" class="dw-t">–</div><div class="dw-c"><div id="dwCond">A carregar…</div><div id="dwHilo"></div></div></div><div id="dwHours" class="dw-h"></div><div id="dwDays" class="dw-d"></div></div></div>
 <div id="dwMenu" hidden></div>
+<button id="mapFab" aria-label="Mapa"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M9 4L3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5L9 4zM9 4v13.5M15 6.5V20"/></svg></button>
 <div class="ptr" id="ptr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></div>
 
 <div class="wrap">
@@ -3446,6 +3482,151 @@ $("#setBody").addEventListener("change", e => { if(e.target.id === "sceneSel"){ 
     else { ptr.style.transform = ""; ptr.style.opacity = 0; } });
 })();
 
+/* ---------- Mapa em ecrã inteiro (como o da Apple): temperatura, precipitação e vento ----------
+   Mapa próprio, sem bibliotecas: mosaicos CARTO (OpenStreetMap), radar RainViewer e uma grelha
+   de pontos do Open-Meteo para a temperatura e o vento (com partículas animadas). */
+const MX = (() => {
+  const $m = s => document.querySelector(s);
+  let root, view, base, radar, field, fctx, wcv, wctx, pin, W = 0, H = 0, DPRm = 1;
+  let lat = 40.66, lon = -7.91, z = 7, layer = store.get("ceu.maplayer", "temp"), open = false;
+  let grid = null, gridKey = "", loading = false, frames = [], fi = 0, playing = null, host = "", parts = [], raf = 0, dirty = true;
+  const ptrs = new Map(); let pinch = null, settleT = 0;
+  const TS = 256, MINZ = 3, MAXZ = 12;
+  const wx = (lo, zz) => (lo + 180) / 360 * TS * 2 ** zz;
+  const wy = (la, zz) => { const s = Math.sin(Math.max(-85, Math.min(85, la)) * Math.PI / 180); return (.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * TS * 2 ** zz; };
+  const xlon = (x, zz) => x / (TS * 2 ** zz) * 360 - 180;
+  const ylat = (y, zz) => { const n = Math.PI - 2 * Math.PI * y / (TS * 2 ** zz); return 180 / Math.PI * Math.atan(Math.sinh(n)); };
+  const toScreen = (la, lo) => [wx(lo, z) - wx(lon, z) + W / 2, wy(la, z) - wy(lat, z) + H / 2];
+  const toLL = (sx, sy) => [ylat(wy(lat, z) + sy - H / 2, z), xlon(wx(lon, z) + sx - W / 2, z)];
+  const night = () => { const c = state.data && state.data.fc && state.data.fc.current; return c && !c.is_day; };
+  const T_STOPS = [[-40, [91, 42, 134]], [-20, [58, 79, 196]], [-5, [74, 163, 223]], [5, [127, 209, 199]], [12, [166, 220, 122]], [20, [242, 214, 92]], [27, [245, 164, 74]], [35, [232, 85, 61]], [45, [165, 42, 74]]];
+  const W_STOPS = [[0, [94, 159, 214]], [15, [111, 207, 151]], [30, [242, 214, 92]], [50, [240, 138, 75]], [80, [217, 74, 106]], [120, [142, 68, 173]]];
+  const ramp = (st, v) => { if(v <= st[0][0]) return st[0][1]; for(let i = 1; i < st.length; i++) if(v <= st[i][0]){ const [a, ca] = st[i - 1], [b, cb] = st[i], k = (v - a) / (b - a); return ca.map((c, j) => c + (cb[j] - c) * k); } return st[st.length - 1][1]; };
+
+  function build(){
+    root = document.createElement("div"); root.id = "mapx"; root.hidden = true;
+    root.innerHTML = `<div class="mx-view" id="mxView"><div class="mx-tiles" id="mxBase"></div><div class="mx-tiles mx-radar" id="mxRadar"></div><canvas id="mxField"></canvas><canvas id="mxWind"></canvas><div id="mxPin"></div></div>
+      <button class="mx-b mx-close" id="mxClose" aria-label="Fechar"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="mx-legend" id="mxLegend"></div>
+      <div class="mx-side"><button class="mx-b" id="mxLayers" aria-label="Camadas"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 3l9 5-9 5-9-5 9-5zm-6.6 8.6L12 15.3l6.6-3.7L21 13l-9 5-9-5 2.4-1.4z"/></svg></button><button class="mx-b" id="mxLoc" aria-label="A minha localização"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20 4L3 11l7 3 3 7 7-17z"/></svg></button></div>
+      <div class="mx-menu" id="mxMenu" hidden></div>
+      <div class="mx-time" id="mxTime" hidden><button id="mxPlay" aria-label="Reproduzir">▶</button><input type="range" id="mxRange" min="0" max="0" value="0"><span id="mxWhen"></span></div>
+      <div class="mx-attr">© OpenStreetMap · © CARTO · RainViewer · Open-Meteo</div><div class="mx-load" id="mxLoad" hidden>A carregar…</div>`;
+    document.body.appendChild(root);
+    view = $m("#mxView"); base = $m("#mxBase"); radar = $m("#mxRadar"); field = $m("#mxField"); fctx = field.getContext("2d"); wcv = $m("#mxWind"); wctx = wcv.getContext("2d"); pin = $m("#mxPin");
+    $m("#mxClose").onclick = close; $m("#mxLoc").onclick = () => { const p = state.place; if(p){ lat = p.lat; lon = p.lon; z = Math.max(z, 7); changed(true); } };
+    $m("#mxLayers").onclick = e => { e.stopPropagation(); const m = $m("#mxMenu"); m.hidden = !m.hidden; menu(); };
+    root.addEventListener("click", e => { if(!e.target.closest("#mxMenu,#mxLayers")) $m("#mxMenu").hidden = true; });
+    $m("#mxRange").oninput = e => { stop(); fi = +e.target.value; showFrame(); };
+    $m("#mxPlay").onclick = () => playing ? stop() : play();
+    addEventListener("keydown", e => { if(open && e.key === "Escape") close(); });
+    addEventListener("resize", () => { if(open){ size(); changed(true); } });
+    // gestos: arrastar, beliscar, roda do rato e duplo toque
+    view.addEventListener("pointerdown", e => { view.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); if(ptrs.size === 2) pinch = pinchInfo(); });
+    view.addEventListener("pointermove", e => { if(!ptrs.has(e.pointerId)) return; const old = ptrs.get(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+      if(ptrs.size === 1){ pan(e.clientX - old[0], e.clientY - old[1]); }
+      else if(ptrs.size === 2 && pinch){ const p = pinchInfo(); zoomAt(p.mx, p.my, pinch.z + Math.log2(p.d / pinch.d), pinch); } });
+    const up = e => { ptrs.delete(e.pointerId); if(ptrs.size < 2) pinch = null; settle(); };
+    view.addEventListener("pointerup", up); view.addEventListener("pointercancel", up);
+    view.addEventListener("wheel", e => { e.preventDefault(); const r = view.getBoundingClientRect(); zoomAt(e.clientX - r.left, e.clientY - r.top, z - e.deltaY * .0025); settle(); }, { passive: false });
+    view.addEventListener("dblclick", e => { const r = view.getBoundingClientRect(); zoomAt(e.clientX - r.left, e.clientY - r.top, z + 1); settle(); });
+  }
+  function pinchInfo(){ const [a, b] = [...ptrs.values()], r = view.getBoundingClientRect(); const mx = (a[0] + b[0]) / 2 - r.left, my = (a[1] + b[1]) / 2 - r.top;
+    return { d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, mx, my, z, ll: toLL(mx, my) }; }
+  function pan(dx, dy){ lon = xlon(wx(lon, z) - dx, z); lat = ylat(wy(lat, z) - dy, z); lon = ((lon + 540) % 360) - 180; changed(); }
+  function zoomAt(sx, sy, nz, pi){ nz = Math.max(MINZ, Math.min(MAXZ, nz)); const ll = pi ? pi.ll : toLL(sx, sy); z = nz;
+    const cx = wx(ll[1], z) - (sx - W / 2), cy = wy(ll[0], z) - (sy - H / 2); lon = xlon(cx, z); lat = ylat(cy, z); changed(); }
+  function settle(){ clearTimeout(settleT); settleT = setTimeout(loadGrid, 350); }
+  function size(){ W = view.clientWidth; H = view.clientHeight; DPRm = Math.min(devicePixelRatio || 1, 2);
+    field.width = Math.ceil(W / 5); field.height = Math.ceil(H / 5); wcv.width = W * DPRm; wcv.height = H * DPRm; wctx.setTransform(DPRm, 0, 0, DPRm, 0, 0); }
+  function changed(reload){ dirty = true; if(wctx) wctx.clearRect(0, 0, W, H); parts = []; if(reload) loadGrid(); }
+
+  /* mosaicos: base (CARTO) e radar (RainViewer, até ao zoom 7 e ampliado depois) */
+  function tiles(el, url, maxN){
+    if(!url){ el.innerHTML = ""; el._c = null; return; }
+    const tz = Math.max(0, Math.round(z)), nz = Math.min(tz, maxN), sc = 2 ** (z - nz), ts = TS * sc;
+    const cx = wx(lon, nz) * sc, cy = wy(lat, nz) * sc, x0 = Math.floor((cx - W / 2) / ts), x1 = Math.floor((cx + W / 2) / ts), y0 = Math.floor((cy - H / 2) / ts), y1 = Math.floor((cy + H / 2) / ts), n = 2 ** nz;
+    const cache = el._c && el._c.url === url ? el._c : (el.innerHTML = "", el._c = { url, m: new Map() }), used = new Set();
+    for(let tx = x0; tx <= x1; tx++) for(let ty = y0; ty <= y1; ty++){ if(ty < 0 || ty >= n) continue; const key = nz + "/" + tx + "/" + ty; used.add(key); let im = cache.m.get(key);
+      if(!im){ im = new Image(); im.alt = ""; im.decoding = "async"; im.draggable = false; im.onerror = () => { im.style.visibility = "hidden"; }; im.src = url.replace("{z}", nz).replace("{x}", ((tx % n) + n) % n).replace("{y}", ty); el.appendChild(im); cache.m.set(key, im); }
+      im.style.cssText = `width:${ts + .5}px;height:${ts + .5}px;transform:translate(${tx * ts - cx + W / 2}px,${ty * ts - cy + H / 2}px)`; }
+    for(const [k, im] of cache.m) if(!used.has(k)){ im.remove(); cache.m.delete(k); }
+  }
+  /* grelha de pontos do Open-Meteo à volta do que se vê */
+  async function loadGrid(){
+    if(!open || layer === "rain" || loading) return;
+    const [la0, lo0] = toLL(-W * .25, H * 1.25), [la1, lo1] = toLL(W * 1.25, -H * .25), N = 11;
+    const key = [la0, lo0, la1, lo1].map(v => v.toFixed(1)).join(",") + "|" + Math.round(z);
+    if(grid && grid.la0 <= toLL(0, H)[0] && grid.la1 >= toLL(0, 0)[0] && grid.lo0 <= toLL(0, 0)[1] && grid.lo1 >= toLL(W, 0)[1] && Math.abs(grid.z - z) < 1.5) return;
+    if(key === gridKey) return; gridKey = key; loading = true; $m("#mxLoad").hidden = false;
+    const lats = [], lons = []; for(let r = 0; r < N; r++) for(let c = 0; c < N; c++){ lats.push((la0 + (la1 - la0) * r / (N - 1)).toFixed(3)); lons.push((lo0 + (lo1 - lo0) * c / (N - 1)).toFixed(3)); }
+    try{
+      const j = await fetchJSON(`https://api.open-meteo.com/v1/forecast?latitude=${lats.join(",")}&longitude=${lons.join(",")}&current=temperature_2m,wind_speed_10m,wind_direction_10m&timezone=GMT`);
+      const arr = Array.isArray(j) ? j : [j], t = [], u = [], v = [], s = [];
+      arr.forEach(p => { const c = p.current || {}, sp = c.wind_speed_10m || 0, d = (c.wind_direction_10m || 0) * Math.PI / 180; t.push(c.temperature_2m); s.push(sp); u.push(-sp * Math.sin(d)); v.push(-sp * Math.cos(d)); });
+      grid = { N, la0, la1, lo0, lo1, t, u, v, s, z }; dirty = true;
+    }catch(e){ gridKey = ""; }
+    loading = false; $m("#mxLoad").hidden = true;
+  }
+  function sample(arr, la, lo){ if(!grid) return null; const g = grid, fr = (la - g.la0) / (g.la1 - g.la0) * (g.N - 1), fc = (lo - g.lo0) / (g.lo1 - g.lo0) * (g.N - 1);
+    if(fr < 0 || fc < 0 || fr > g.N - 1 || fc > g.N - 1) return null; const r = Math.min(g.N - 2, Math.floor(fr)), c = Math.min(g.N - 2, Math.floor(fc)), a = fr - r, b = fc - c, k = (rr, cc) => arr[rr * g.N + cc];
+    const q = [k(r, c), k(r, c + 1), k(r + 1, c), k(r + 1, c + 1)]; if(q.some(x => x == null)) return null;
+    return q[0] * (1 - a) * (1 - b) + q[1] * (1 - a) * b + q[2] * a * (1 - b) + q[3] * a * b; }
+  function drawField(){
+    const fw = field.width, fh = field.height; fctx.clearRect(0, 0, fw, fh); if(!grid || layer === "rain") return;
+    const img = fctx.createImageData(fw, fh), d = img.data, arr = layer === "temp" ? grid.t : grid.s, st = layer === "temp" ? T_STOPS : W_STOPS, al = layer === "temp" ? 150 : 110;
+    for(let y = 0; y < fh; y++) for(let x = 0; x < fw; x++){ const ll = toLL(x * 5 + 2.5, y * 5 + 2.5), v = sample(arr, ll[0], ll[1]); if(v == null) continue; const c = ramp(st, v), i = (y * fw + x) * 4; d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = al; }
+    fctx.putImageData(img, 0, 0);
+  }
+  function stepWind(){
+    if(layer !== "wind" || !grid){ return; }
+    wctx.save(); wctx.globalCompositeOperation = "destination-in"; wctx.fillStyle = "rgba(0,0,0,.9)"; wctx.fillRect(0, 0, W, H); wctx.restore();
+    const want = Math.round(W * H / 1400); while(parts.length < want) parts.push({ x: Math.random() * W, y: Math.random() * H, a: Math.random() * 80 | 0 });
+    wctx.strokeStyle = night() ? "rgba(255,255,255,.75)" : "rgba(255,255,255,.9)"; wctx.lineWidth = 1.3; wctx.beginPath();
+    for(const p of parts){ const ll = toLL(p.x, p.y), u = sample(grid.u, ll[0], ll[1]), v = sample(grid.v, ll[0], ll[1]);
+      if(u == null || p.a++ > 90){ p.x = Math.random() * W; p.y = Math.random() * H; p.a = 0; continue; }
+      const k = .045 * Math.max(.6, Math.min(2.2, z / 6)), nx = p.x + u * k, ny = p.y - v * k; wctx.moveTo(p.x, p.y); wctx.lineTo(nx, ny); p.x = nx; p.y = ny;
+      if(nx < 0 || ny < 0 || nx > W || ny > H){ p.x = Math.random() * W; p.y = Math.random() * H; p.a = 0; } }
+    wctx.stroke();
+  }
+  function drawPin(){
+    const p = state.place; if(!p){ pin.hidden = true; return; } const [x, y] = toScreen(p.lat, p.lon); pin.hidden = false;
+    const c = state.data && state.data.fc && state.data.fc.current, d = state.data && state.data.fc && state.data.fc.daily;
+    pin.style.transform = `translate(${x}px,${y}px)`;
+    const html = `<div class="mx-bub"><b>${c ? RT(c.temperature_2m) + "°" : "·"}</b>${d ? `<small>${RT(d.temperature_2m_min[0])} · ${RT(d.temperature_2m_max[0])}</small>` : ""}</div><i></i><span>${esc(p.name || "Localização atual")}</span>`;
+    if(pin._h !== html){ pin.innerHTML = html; pin._h = html; }
+  }
+  function loop(){ if(!open) return; if(dirty){ dirty = false; tiles(base, `https://a.basemaps.cartocdn.com/${night() ? "dark_all" : "light_all"}/{z}/{x}/{y}@2x.png`, 19);
+      tiles(radar, layer === "rain" && frames[fi] ? `${host}${frames[fi].path}/256/{z}/{x}/{y}/2/1_1.png` : null, 7); drawField(); drawPin(); }
+    stepWind(); raf = requestAnimationFrame(loop); }
+
+  /* radar de precipitação (passado + previsão curta) */
+  async function loadRadar(){
+    try{ const j = await fetchJSON("https://api.rainviewer.com/public/weather-maps.json"); host = j.host; const past = (j.radar && j.radar.past) || [], now = (j.radar && j.radar.nowcast) || [];
+      frames = past.map(f => ({ ...f, fc: false })).concat(now.map(f => ({ ...f, fc: true }))); fi = Math.max(0, past.length - 1);
+      const r = $m("#mxRange"); r.max = frames.length - 1; r.value = fi; showFrame(); }catch(e){ frames = []; $m("#mxWhen").textContent = "Radar indisponível"; }
+  }
+  function showFrame(){ const f = frames[fi]; if(!f) return; $m("#mxRange").value = fi; const t = new Date(f.time * 1000).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+    $m("#mxWhen").textContent = (f.fc ? "Previsão " : "") + t; dirty = true; }
+  function play(){ $m("#mxPlay").textContent = "❚❚"; playing = setInterval(() => { fi = (fi + 1) % frames.length; showFrame(); }, 650); }
+  function stop(){ if(playing){ clearInterval(playing); playing = null; } $m("#mxPlay").textContent = "▶"; }
+
+  const LAYERS = [["temp", "Temperatura", "M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0z"], ["rain", "Precipitação", "M7 15a5 5 0 1 1 9.6-2H17a3 3 0 0 1 0 6H8a4 4 0 0 1-1-4zM9 20l-1 2M13 20l-1 2M17 20l-1 2"], ["wind", "Vento", "M3 8h11a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h8"]];
+  function menu(){ $m("#mxMenu").innerHTML = LAYERS.map(([k, l, d]) => `<button data-l="${k}" class="${layer === k ? "on" : ""}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>${l}${layer === k ? '<em>✓</em>' : ""}</button>`).join("");
+    $m("#mxMenu").querySelectorAll("button").forEach(b => b.onclick = () => { setLayer(b.dataset.l); $m("#mxMenu").hidden = true; }); }
+  function legend(){
+    const L = $m("#mxLegend");
+    if(layer === "temp") L.innerHTML = `<b>Temperatura</b><div class="mx-sc"><i style="background:linear-gradient(${T_STOPS.slice().reverse().map(s => `rgb(${s[1]})`).join(",")})"></i><span>${[45, 30, 20, 10, 0, -20, -40].map(v => `<em>${cfg.units.t === "f" ? Math.round(v * 9 / 5 + 32) : v}</em>`).join("")}</span></div>`;
+    else if(layer === "wind") L.innerHTML = `<b>Vento</b><div class="mx-sc"><i style="background:linear-gradient(${W_STOPS.slice().reverse().map(s => `rgb(${s[1]})`).join(",")})"></i><span>${[120, 80, 50, 30, 15, 0].map(v => `<em>${v}</em>`).join("")}</span></div><small>km/h</small>`;
+    else L.innerHTML = `<b>Precipitação</b><div class="mx-sc"><i style="background:linear-gradient(#c1272d,#f7b733,#3ec46d,#3a8fd9,#9ad0f5)"></i><span><em>Extrema</em><em>Forte</em><em>Moderada</em><em>Fraca</em><em></em></span></div>`;
+  }
+  function setLayer(k){ layer = k; store.set("ceu.maplayer", k); stop(); $m("#mxTime").hidden = k !== "rain"; wctx.clearRect(0, 0, W, H); parts = []; legend(); dirty = true;
+    if(k === "rain" && !frames.length) loadRadar(); if(k !== "rain") loadGrid(); }
+  function show(){ if(!root) build(); const p = state.place; if(p){ lat = p.lat; lon = p.lon; } z = 7; root.hidden = false; open = true; document.documentElement.classList.add("mx-open"); size(); grid = null; gridKey = ""; setLayer(layer); cancelAnimationFrame(raf); loop(); }
+  function close(){ open = false; stop(); cancelAnimationFrame(raf); if(root) root.hidden = true; document.documentElement.classList.remove("mx-open"); }
+  return { open: show, close, isOpen: () => open };
+})();
+
 /* ---------- Vidro real dos widgets Android ----------
    O Android não deixa uma app desfocar o papel de parede por trás de um widget. Para imitar o vidro da Honor,
    o utilizador escolhe uma captura do ecrã inicial, marca onde está cada widget e o app gera o recorte
@@ -3547,6 +3728,7 @@ if(WMODE){
     else $("#dwMenu").hidden = true; });
 }
 if(IS_DESK && !WMODE && cfg.dwidget !== false) TAURI.invoke("show_desktop_widget").catch(e => console.warn(e));
+$("#mapFab").addEventListener("click", () => MX.open());
 /* ---------- arranque ---------- */
 function applyDesign(){ document.body.classList.toggle("glass", cfg.design === "glass"); document.body.classList.toggle("corner", cfg.layout === "corner"); }
 applyDesign();
