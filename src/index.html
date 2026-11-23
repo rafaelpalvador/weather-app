@@ -243,6 +243,7 @@ html.wmode #mapFab,html.mx-open #mapFab{display:none}
 .mx-radar{opacity:.75}
 #mxField,#mxWind{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #mxField{image-rendering:auto;mix-blend-mode:multiply;opacity:.95}
+#mxWindy{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:2;display:none;background:#1b2230}#mapx.mx-windy #mxWindy{display:block}#mapx.mx-windy .mx-attr{display:none}
 #mapx.mx-dark #mxField{mix-blend-mode:normal;opacity:.6}#mapx.mx-dark{background:#22262c;color:#1b2230}
 #mxPin{position:absolute;left:0;top:0;pointer-events:none;z-index:2}
 #mxPin .mx-bub{position:absolute;left:-30px;top:-74px;width:60px;height:60px;border-radius:50%;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25),inset 0 0 0 3px rgba(120,170,230,.35);display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -265,6 +266,25 @@ html.wmode #mapFab,html.mx-open #mapFab{display:none}
 .mx-time input{flex:1;accent-color:#2f6db5}.mx-time span{font-size:12.5px;font-weight:600;min-width:92px;text-align:right}
 .mx-attr{position:absolute;right:8px;bottom:calc(env(safe-area-inset-bottom) + 6px);font-size:9.5px;opacity:.6;z-index:3;pointer-events:none}
 .mx-load{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 22px);transform:translateX(-50%);background:rgba(255,255,255,.95);border-radius:999px;padding:7px 14px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.15);z-index:3}
+
+/* ===== Barra de baixo e lista de locais ===== */
+#bbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding:10px 6px;border-top:1px solid var(--line)}
+.bb-b{width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);color:var(--txt);display:grid;place-items:center;cursor:pointer;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.bb-dots{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;flex:1}
+.bb-dots button{width:8px;height:8px;border-radius:50%;border:0;padding:0;background:rgba(255,255,255,.35);cursor:pointer}
+.bb-dots button.on{background:#fff}.bb-dots button.gps{width:auto;height:auto;background:none;color:rgba(255,255,255,.45)}.bb-dots button.gps.on{color:#fff}
+html.wmode #bbar{display:none}
+@media (min-width:980px){ #bbar{column-span:all;-webkit-column-span:all} }
+#plist{position:fixed;inset:0;z-index:55;background:#0d1118;overflow:auto;padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 30px)}
+#plist[hidden]{display:none}
+.pl-top{display:flex;align-items:center;gap:12px;max-width:640px;margin:0 auto 12px}.pl-top h2{flex:1;margin:0;font-size:30px;font-weight:700}
+.pl-x,.pl-add{width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.12);color:#fff;font-size:18px;cursor:pointer}
+.pl-list{display:flex;flex-direction:column;gap:12px;max-width:640px;margin:0 auto}
+.pl-c{display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;border:0;border-radius:22px;padding:16px 18px;color:#fff;cursor:pointer;min-height:112px;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 6px 18px rgba(0,0,0,.25);text-shadow:0 1px 3px rgba(0,0,0,.25);font:inherit}
+.pl-c.on{outline:2px solid rgba(255,255,255,.55);outline-offset:2px}
+.pl-l{display:flex;flex-direction:column;min-width:0}.pl-l b{font-size:21px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pl-l small{font-size:13px;opacity:.85;margin-top:2px}.pl-l em{font-style:normal;margin-top:auto;font-size:14px;opacity:.95}
+.pl-r{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between}.pl-r b{font-size:46px;font-weight:300;line-height:1}.pl-r small{font-size:13px;opacity:.9;white-space:nowrap}
+.pl-hint{max-width:640px;margin:16px auto 0;font-size:12.5px;opacity:.55;text-align:center}
 /* ===== Liquid Glass ===== */
 body.glass{--dim:rgba(255,255,255,.86);--faint:rgba(255,255,255,.66);--line:rgba(255,255,255,.18);--rain:#d4ecff}
 body.glass .shade{background:linear-gradient(180deg,rgba(0,0,0,.16) 0%,rgba(0,0,0,0) 26%,rgba(0,0,0,.04) 55%,rgba(6,8,14,.32) 100%)}
@@ -416,7 +436,7 @@ footer{font-size:11px;color:var(--faint);text-align:center;line-height:1.6;margi
 <canvas id="sky" aria-hidden="true"></canvas><div class="shade"></div>
 <div id="dw"><div class="dw-in"><div class="dw-top"><b id="dwCity">Céu</b><span id="dwUpd"></span></div><div class="dw-mid"><span id="dwIco" class="dw-ico"></span><div id="dwTemp" class="dw-t">–</div><div class="dw-c"><div id="dwCond">A carregar…</div><div id="dwHilo"></div></div></div><div id="dwHours" class="dw-h"></div><div id="dwDays" class="dw-d"></div></div></div>
 <div id="dwMenu" hidden></div>
-<button id="mapFab" aria-label="Mapa"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M9 4L3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5L9 4zM9 4v13.5M15 6.5V20"/></svg></button>
+
 <div class="ptr" id="ptr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></div>
 
 <div class="wrap">
@@ -443,6 +463,9 @@ footer{font-size:11px;color:var(--faint);text-align:center;line-height:1.6;margi
     <section class="blk" id="nowcast" hidden></section>
     <section class="blk" id="daily"><div class="sk" style="height:260px"></div></section>
     <section class="cards" id="details" hidden></section>
+    <nav id="bbar"><button class="bb-b" id="bbMap" aria-label="Mapa"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M9 4L3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5L9 4zM9 4v13.5M15 6.5V20"/></svg></button>
+      <div class="bb-dots" id="bbDots"></div>
+      <button class="bb-b" id="bbList" aria-label="Lista de locais"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/></svg></button></nav>
     <footer>Open-Meteo (CC BY 4.0) · ECMWF · DWD · NOAA · Météo-France · IPMA · BigDataCloud / OpenStreetMap</footer>
   </main>
 </div>
@@ -2966,7 +2989,7 @@ function renderAll(){
   renderHeader(); renderSub();
   renderHero(fc, idx, d.warn); renderWarnings(d.warn); renderHourly(fc, idx); renderNowcast(fc); renderDaily(fc);
   renderDetails(fc, idx, d.aq);
-  renderDesktopWidget(fc, idx);
+  renderDesktopWidget(fc, idx); renderBBar();
   if(!WMODE && IS_ANDROID){ clearTimeout(renderAll.ws); renderAll.ws = setTimeout(() => makeWidgetScenes(), 4000); }
 }
 
@@ -3322,10 +3345,10 @@ async function fetchListNow(){
   if(!all.length) return;
   try{
     const q = new URLSearchParams({ latitude: all.map(p => (+p.lat).toFixed(3)).join(","), longitude: all.map(p => (+p.lon).toFixed(3)).join(","),
-      current: "temperature_2m,weather_code,is_day", timezone: "auto" });
+      current: "temperature_2m,weather_code,is_day", daily: "temperature_2m_max,temperature_2m_min", forecast_days: "1", timezone: "auto" });
     let j = await fetchJSON("https://api.open-meteo.com/v1/forecast?" + q);
     if(!Array.isArray(j)) j = [j];
-    j.forEach((r, i) => { if(r && r.current) listNow[pkey(all[i])] = r.current; });
+    j.forEach((r, i) => { if(r && r.current) listNow[pkey(all[i])] = { ...r.current, off: r.utc_offset_seconds, hi: r.daily && r.daily.temperature_2m_max[0], lo: r.daily && r.daily.temperature_2m_min[0] }; });
     if($("#searchSheet").classList.contains("open") && !$("#q").value.trim()) renderResults(null);
   }catch(e){}
 }
@@ -3381,8 +3404,11 @@ $("#ttl").addEventListener("click", () => $("#cityBtn").click());
 /* deslizar entre locais */
 (() => {
   let x0 = null, y0 = null;
-  const hero = $("#hero");
-  hero.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  const hero = document;
+  const skip = t => t.closest && t.closest("#hourly .hs,.hs,#mapx,#plist,.sheet,input,iframe,#dp,.mx-view,#nowcast");
+  hero.addEventListener("touchstart", e => { if(WMODE || skip(e.target)){ x0 = null; return; } x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  addEventListener("keydown", e => { if(WMODE || document.querySelector(".sheet.open") || document.documentElement.matches(".mx-open,.pl-open") || /INPUT|SELECT|TEXTAREA/.test((e.target || {}).tagName || "")) return;
+    if(e.key === "ArrowRight") go(state.sel + 1); else if(e.key === "ArrowLeft") go(state.sel - 1); });
   hero.addEventListener("touchend", e => {
     if(x0 == null) return; const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
     if(Math.abs(dx) > 60 && Math.abs(dy) < 50) go(state.sel + (dx < 0 ? 1 : -1));
@@ -3518,7 +3544,7 @@ const MX = (() => {
       <div class="mx-side"><button class="mx-b" id="mxLayers" aria-label="Camadas"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 3l9 5-9 5-9-5 9-5zm-6.6 8.6L12 15.3l6.6-3.7L21 13l-9 5-9-5 2.4-1.4z"/></svg></button><button class="mx-b" id="mxLoc" aria-label="A minha localização"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20 4L3 11l7 3 3 7 7-17z"/></svg></button></div>
       <div class="mx-menu" id="mxMenu" hidden></div>
       <div class="mx-time" id="mxTime" hidden><button id="mxPlay" aria-label="Reproduzir">▶</button><input type="range" id="mxRange" min="0" max="0" value="0"><span id="mxWhen"></span></div>
-      <div class="mx-attr">Mapa: Esri, HERE, Garmin, © OpenStreetMap · RainViewer · Open-Meteo</div><div class="mx-load" id="mxLoad" hidden>A carregar…</div>`;
+      <iframe id="mxWindy" title="Windy" loading="lazy" allow="geolocation"></iframe><div class="mx-attr">Mapa: Esri, HERE, Garmin, © OpenStreetMap · Radar: RainViewer · Temperatura e vento: ECMWF via Open-Meteo</div><div class="mx-load" id="mxLoad" hidden>A carregar…</div>`;
     document.body.appendChild(root);
     view = $m("#mxView"); base = $m("#mxBase"); labels = $m("#mxLabels"); radar = $m("#mxRadar"); field = $m("#mxField"); fctx = field.getContext("2d"); wcv = $m("#mxWind"); wctx = wcv.getContext("2d"); pin = $m("#mxPin");
     $m("#mxClose").onclick = close; $m("#mxLoc").onclick = () => { const p = state.place; if(p){ lat = p.lat; lon = p.lon; z = Math.max(z, 7); changed(true); } };
@@ -3568,7 +3594,8 @@ const MX = (() => {
     if(key === gridKey) return; gridKey = key; loading = true; $m("#mxLoad").hidden = false;
     const lats = [], lons = []; for(let r = 0; r < N; r++) for(let c = 0; c < N; c++){ lats.push((la0 + (la1 - la0) * r / (N - 1)).toFixed(3)); lons.push((lo0 + (lo1 - lo0) * c / (N - 1)).toFixed(3)); }
     try{
-      const j = await fetchJSON(`https://api.open-meteo.com/v1/forecast?latitude=${lats.join(",")}&longitude=${lons.join(",")}&current=temperature_2m,wind_speed_10m,wind_direction_10m&timezone=GMT`);
+      const u0 = `https://api.open-meteo.com/v1/forecast?latitude=${lats.join(",")}&longitude=${lons.join(",")}&current=temperature_2m,wind_speed_10m,wind_direction_10m&timezone=GMT`;
+      let j = null; for(const m of ["&models=ecmwf_ifs", "&models=ecmwf_ifs025", ""]){ try{ j = await fetchJSON(u0 + m); if(j) break; }catch(e){} } if(!j) throw new Error("sem dados");
       const arr = Array.isArray(j) ? j : [j], t = [], u = [], v = [], s = [];
       arr.forEach(p => { const c = p.current || {}, sp = c.wind_speed_10m || 0, d = (c.wind_direction_10m || 0) * Math.PI / 180; t.push(c.temperature_2m); s.push(sp); u.push(-sp * Math.sin(d)); v.push(-sp * Math.cos(d)); });
       grid = { N, la0, la1, lo0, lo1, t, u, v, s, z }; dirty = true;
@@ -3618,16 +3645,20 @@ const MX = (() => {
   function play(){ $m("#mxPlay").textContent = "❚❚"; playing = setInterval(() => { fi = (fi + 1) % frames.length; showFrame(); }, 650); }
   function stop(){ if(playing){ clearInterval(playing); playing = null; } $m("#mxPlay").textContent = "▶"; }
 
-  const LAYERS = [["temp", "Temperatura", "M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0z"], ["rain", "Precipitação", "M7 15a5 5 0 1 1 9.6-2H17a3 3 0 0 1 0 6H8a4 4 0 0 1-1-4zM9 20l-1 2M13 20l-1 2M17 20l-1 2"], ["wind", "Vento", "M3 8h11a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h8"]];
+  const LAYERS = [["windy", "Windy (mapa completo)", "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3.5 9h17M3.5 15h17M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"], ["temp", "Temperatura", "M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0z"], ["rain", "Precipitação", "M7 15a5 5 0 1 1 9.6-2H17a3 3 0 0 1 0 6H8a4 4 0 0 1-1-4zM9 20l-1 2M13 20l-1 2M17 20l-1 2"], ["wind", "Vento", "M3 8h11a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h8"]];
   function menu(){ $m("#mxMenu").innerHTML = LAYERS.map(([k, l, d]) => `<button data-l="${k}" class="${layer === k ? "on" : ""}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>${l}${layer === k ? '<em>✓</em>' : ""}</button>`).join("");
     $m("#mxMenu").querySelectorAll("button").forEach(b => b.onclick = () => { setLayer(b.dataset.l); $m("#mxMenu").hidden = true; }); }
   function legend(){
     const L = $m("#mxLegend");
     if(layer === "temp") L.innerHTML = `<b>Temperatura</b><div class="mx-sc"><i style="background:linear-gradient(${T_STOPS.slice().reverse().map(s => `rgb(${s[1]})`).join(",")})"></i><span>${[45, 30, 20, 10, 0, -20, -40].map(v => `<em>${cfg.units.t === "f" ? Math.round(v * 9 / 5 + 32) : v}</em>`).join("")}</span></div>`;
     else if(layer === "wind") L.innerHTML = `<b>Vento</b><div class="mx-sc"><i style="background:linear-gradient(${W_STOPS.slice().reverse().map(s => `rgb(${s[1]})`).join(",")})"></i><span>${[120, 80, 50, 30, 15, 0].map(v => `<em>${v}</em>`).join("")}</span></div><small>km/h</small>`;
+    else if(layer === "windy") L.innerHTML = "";
     else L.innerHTML = `<b>Precipitação</b><div class="mx-sc"><i style="background:linear-gradient(#c1272d,#f7b733,#3ec46d,#3a8fd9,#9ad0f5)"></i><span><em>Extrema</em><em>Forte</em><em>Moderada</em><em>Fraca</em><em></em></span></div>`;
   }
-  function setLayer(k){ layer = k; store.set("ceu.maplayer", k); stop(); $m("#mxTime").hidden = k !== "rain"; wctx.clearRect(0, 0, W, H); parts = []; legend(); dirty = true;
+  function setLayer(k){ layer = k; store.set("ceu.maplayer", k); stop(); $m("#mxTime").hidden = k !== "rain";
+    const wf = $m("#mxWindy"); root.classList.toggle("mx-windy", k === "windy"); $m("#mxLegend").hidden = k === "windy";
+    if(k === "windy"){ const p = state.place || { lat, lon }; const u = `https://embed.windy.com/embed2.html?lat=${(+p.lat).toFixed(3)}&lon=${(+p.lon).toFixed(3)}&detailLat=${(+p.lat).toFixed(3)}&detailLon=${(+p.lon).toFixed(3)}&zoom=7&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=km%2Fh&metricTemp=%C2%B0C&radarRange=-1`;
+      if(wf.src !== u) wf.src = u; } wctx.clearRect(0, 0, W, H); parts = []; legend(); dirty = true;
     if(k === "rain" && !frames.length) loadRadar(); if(k !== "rain") loadGrid(); }
   function show(){ if(!root) build(); const p = state.place; if(p){ lat = p.lat; lon = p.lon; } z = 7; root.hidden = false; open = true; document.documentElement.classList.add("mx-open"); size(); grid = null; gridKey = ""; setLayer(layer); cancelAnimationFrame(raf); loop(); }
   function close(){ open = false; stop(); cancelAnimationFrame(raf); if(root) root.hidden = true; document.documentElement.classList.remove("mx-open"); }
@@ -3735,7 +3766,35 @@ if(WMODE){
     else $("#dwMenu").hidden = true; });
 }
 if(IS_DESK && !WMODE && cfg.dwidget !== false) TAURI.invoke("show_desktop_widget").catch(e => console.warn(e));
-$("#mapFab").addEventListener("click", () => MX.open());
+/* ---------- barra de baixo: mapa · pontos dos locais · lista ---------- */
+function renderBBar(){ const n = favs().length, min = cfg.showGps || !n ? -1 : 0; let h = "";
+  for(let i = min; i < n; i++) h += `<button data-g="${i}" class="${i === state.sel ? "on" : ""}${i < 0 ? " gps" : ""}" aria-label="Local ${i + 2}">${i < 0 ? '<svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M20 4L3 11l7 3 3 7 7-17z"/></svg>' : ""}</button>`;
+  $("#bbDots").innerHTML = h; }
+$("#bbDots").addEventListener("click", e => { const b = e.target.closest("[data-g]"); if(b){ go(+b.dataset.g); scrollTo({ top: 0, behavior: "smooth" }); } });
+$("#bbMap").addEventListener("click", () => MX.open());
+$("#bbList").addEventListener("click", () => PL.open());
+/* lista de locais (como na Apple): cartões com o tempo de cada local */
+const PL = (() => {
+  let root = null;
+  const grad = c => { if(!c) return "linear-gradient(135deg,#3a4a66,#222b3d)"; const k0 = kindOf(c.weather_code), k = ({ drizzle: "rain", heavy: "rain" })[k0] || k0, d = c.is_day;
+    if(!d) return k === "rain" || k === "storm" ? "linear-gradient(135deg,#1d2433,#2c3546)" : "linear-gradient(135deg,#0f1a3a,#28356a)";
+    return ({ clear: "linear-gradient(135deg,#3f8ee0,#78b8f0)", partly: "linear-gradient(135deg,#4f86c6,#8db4dc)", cloudy: "linear-gradient(135deg,#6d7d93,#9aa8ba)", fog: "linear-gradient(135deg,#8a94a3,#b2bac5)",
+      rain: "linear-gradient(135deg,#4c5d78,#7a8aa3)", storm: "linear-gradient(135deg,#3a4258,#5f6a85)", snow: "linear-gradient(135deg,#8ea8c8,#c4d4e6)" })[k] || "linear-gradient(135deg,#4f86c6,#8db4dc)"; };
+  function render(){ if(!root) return; const f = favs(), gps = store.get("ceu.lastAuto"), items = [];
+    if(cfg.showGps || !f.length) items.push({ i: -1, p: gps, gps: true }); f.forEach((p, i) => items.push({ i, p }));
+    root.querySelector(".pl-list").innerHTML = items.map(({ i, p, gps }) => { if(!p) return ""; const c = listNow[pkey(p)], tz = c && c.off != null ? c.off : null;
+      const t = tz != null ? new Date(Date.now() + tz * 1000).toISOString().slice(11, 16) : "";
+      return `<button class="pl-c${i === state.sel ? " on" : ""}" data-i="${i}" style="background:${grad(c)}"><div class="pl-l"><b>${gps ? "A minha localização" : esc(p.name)}</b><small>${gps ? esc(p.name || "") : t}${p.country ? " · " + esc(p.country) : ""}</small><em>${c ? esc(condTxt(c.weather_code, c.is_day)) : "…"}</em></div>
+        <div class="pl-r"><b>${c ? RT(c.temperature_2m) + "°" : "–"}</b><small>${c && c.hi != null ? `Máx. ${RT(c.hi)}°  Mín. ${RT(c.lo)}°` : ""}</small></div></button>`; }).join("");
+  }
+  function open(){ if(!root){ root = document.createElement("div"); root.id = "plist"; root.innerHTML = `<div class="pl-top"><button class="pl-x" aria-label="Fechar">✕</button><h2>Locais</h2><button class="pl-add" aria-label="Adicionar">＋</button></div><div class="pl-list"></div><p class="pl-hint">Toca num local para o abrir. No ecrã principal, desliza para os lados para passar de um local para outro.</p>`;
+      document.body.appendChild(root); root.querySelector(".pl-x").onclick = close; root.querySelector(".pl-add").onclick = () => { close(); $("#cityBtn").click(); };
+      root.querySelector(".pl-list").onclick = e => { const b = e.target.closest("[data-i]"); if(b){ close(); go(+b.dataset.i); scrollTo({ top: 0 }); } }; }
+    root.hidden = false; document.documentElement.classList.add("pl-open"); render(); fetchListNow().then(render); }
+  function close(){ if(root) root.hidden = true; document.documentElement.classList.remove("pl-open"); }
+  addEventListener("keydown", e => { if(e.key === "Escape" && root && !root.hidden) close(); });
+  return { open, close, render };
+})();
 /* ---------- arranque ---------- */
 function applyDesign(){ document.body.classList.toggle("glass", cfg.design === "glass"); document.body.classList.toggle("corner", cfg.layout === "corner"); }
 applyDesign();
