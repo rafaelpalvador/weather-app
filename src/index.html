@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Céu</title>
 <meta name="theme-color" content="#1d5bb8">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#0c0e13;--s1:#13161d;--s2:#1a1e27;--line:rgba(255,255,255,.07);
@@ -26,7 +23,7 @@ body[data-sky^=fog]{--glow:#4a525f}
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{background:var(--bg)}
-body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--txt);background:transparent;min-height:100vh;
+body{font-family:-apple-system,"SF Pro Text",Inter,"Segoe UI Variable","Segoe UI",Roboto,"HarmonyOS Sans","Noto Sans",system-ui,sans-serif;font-feature-settings:"tnum" 1;color:var(--txt);background:transparent;min-height:100vh;
   font-feature-settings:"tnum" 1,"cv11" 1;overscroll-behavior-y:contain;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
 #sky{position:fixed;inset:0;width:100%;height:100%;z-index:-2;display:block}
 body.land .hero{min-height:calc(70vh - 70px)!important}
@@ -191,7 +188,6 @@ html.wmode #dw{display:block;position:fixed;inset:0;border-radius:8px;overflow:h
 .dw-c{font-size:13px;min-width:0}.dw-c div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dw-c div+div{opacity:.82;font-size:12px;margin-top:3px}
 .dw-h{margin-top:auto;display:grid;grid-template-columns:repeat(6,1fr);text-align:center;font-size:11px;line-height:1.15}
 .dw-h span{opacity:.75}.dw-h b{font-weight:500;font-size:12px}.dw-h svg{width:20px;height:20px;display:block;margin:3px auto}
-html.dw-tiny .dw-h{display:none}
 html.dw-glass #sky,html.dw-dark #sky{display:none!important}
 html.dw-glass #dw{background:linear-gradient(150deg,rgba(255,255,255,.16),rgba(255,255,255,.04)),rgba(24,32,48,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 0 0 1px rgba(255,255,255,.12)}
 html.dw-glass #dw .dw-in,html.dw-dark #dw .dw-in{background:none}
@@ -285,6 +281,40 @@ html.wmode #bbar{display:none}
 .pl-l{display:flex;flex-direction:column;min-width:0}.pl-l b{font-size:21px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pl-l small{font-size:13px;opacity:.85;margin-top:2px}.pl-l em{font-style:normal;margin-top:auto;font-size:14px;opacity:.95}
 .pl-r{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between}.pl-r b{font-size:46px;font-weight:300;line-height:1}.pl-r small{font-size:13px;opacity:.9;white-space:nowrap}
 .pl-hint{max-width:640px;margin:16px auto 0;font-size:12.5px;opacity:.55;text-align:center}
+
+/* ===== Refinamento (inspirado no iOS) ===== */
+:root{--ease:cubic-bezier(.32,.72,0,1)}
+.grp{background:var(--s2);border-radius:14px;overflow:hidden}
+.grp>.set-row,.grp>.opt{margin:0;border-radius:0;background:none;padding:12px 14px;border:0}
+.grp>*+*{box-shadow:inset 0 .5px 0 rgba(255,255,255,.1)}
+.grp>.opt.sel{background:rgba(255,255,255,.04);max-width:none;padding:12px 14px;font-size:inherit}
+.set-sec{margin:26px 14px 8px;font-size:12.5px;letter-spacing:.04em;font-weight:500}
+.set-row{font-size:15px;flex-wrap:wrap;row-gap:8px}.set-row>div:first-child{flex:1 1 140px;min-width:0}.set-row>.seg,.set-row>.sel{margin-left:auto}
+.grp>.opt{width:100%;box-sizing:border-box}.opt>div{flex:1;min-width:0}
+.seg{background:rgba(118,118,128,.24);border-radius:9px;padding:2px}
+.seg button{border-radius:7px;transition:background .25s var(--ease),color .25s;padding:6px 11px}
+.seg button.on{background:rgba(255,255,255,.92);color:#141821;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.sel{background:rgba(118,118,128,.24);border-radius:9px}
+.mini{font:inherit;font-size:13.5px;color:var(--txt);background:rgba(118,118,128,.24);border:0;border-radius:999px;padding:8px 14px;cursor:pointer}
+.mini.danger{color:#ff6b61}
+.grp>.set-row:has(> .mini.danger){justify-content:flex-start;gap:10px}
+/* folhas que deslizam de baixo, com a curva do iOS */
+.sheet{display:block!important;visibility:hidden;pointer-events:none;transition:visibility 0s .45s}
+.sheet.open{visibility:visible;pointer-events:auto;transition:visibility 0s}
+.sheet .bd{opacity:0;transition:opacity .35s var(--ease)}
+.sheet.open .bd{opacity:1}
+.sheet .pn{transform:translateY(105%);transition:transform .45s var(--ease);will-change:transform}
+.sheet.open .pn{transform:none}
+/* mapa e lista abrem com um zoom suave */
+#mapx:not([hidden]),#plist:not([hidden]){animation:ovIn .38s var(--ease)}
+@keyframes ovIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+/* toque com resposta */
+button,.opt,.pl-c,.bb-b,.mx-b,.ib{transition:transform .18s var(--ease),background .2s,opacity .2s;-webkit-tap-highlight-color:transparent}
+button:active,.opt:active,.pl-c:active{transform:scale(.97)}
+/* deslocamento suave e sem saltos */
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+.blk,.cd{contain:layout paint}
+#heroTxt{transition:opacity .3s var(--ease),transform .35s var(--ease)}
 /* ===== Liquid Glass ===== */
 body.glass{--dim:rgba(255,255,255,.86);--faint:rgba(255,255,255,.66);--line:rgba(255,255,255,.18);--rain:#d4ecff}
 body.glass .shade{background:linear-gradient(180deg,rgba(0,0,0,.16) 0%,rgba(0,0,0,0) 26%,rgba(0,0,0,.04) 55%,rgba(6,8,14,.32) 100%)}
@@ -2694,7 +2724,8 @@ const Sky = (() => {
   }
   function loop(t){
     raf = requestAnimationFrame(loop);
-    if(document.hidden || t - (loop.prev || 0) < 30) return; loop.prev = t; draw(t);
+    const busy = t - (window.__scrollT || 0) < 200;   // a deslizar: menos quadros para o deslocamento ficar fluido
+    if(document.hidden || t - (loop.prev || 0) < (busy ? 70 : 30)) return; loop.prev = t; draw(t);
   }
   addEventListener("resize", () => { clearTimeout(resize.t); resize.t = setTimeout(resize, 150); });
   resize();
@@ -3430,46 +3461,53 @@ const seg = (key, opts, val) => `<div class="seg" data-k="${key}">${opts.map(([v
 function fmtWhen(ts){ if(!ts) return "nunca"; const d = new Date(ts), now = new Date(); const hm = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
   return d.toDateString() === now.toDateString() ? `hoje às ${hm}` : `${d.getDate()} ${MON[d.getMonth()]} às ${hm}`; }
 function renderSettings(){ setTimeout(glassDraw, 30);
-  const f = favs();
-  const wopts = [`<option value="gps"${cfg.wplace === "gps" ? " selected" : ""}>Minha localização</option>`].concat(f.map(p => `<option value="${pkey(p)}"${cfg.wplace === pkey(p) ? " selected" : ""}>${esc(p.name)}</option>`)).join("");
+  const f = favs(), row = (t, sub, ctl) => `<div class="set-row"><div>${t}${sub ? `<small>${sub}</small>` : ""}</div>${ctl}</div>`;
+  const sel = (id, opts, val) => `<select class="sel" id="${id}">${opts.map(([v, l]) => `<option value="${v}"${String(val) === String(v) ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+  const wopts = [["gps", "A minha localização"]].concat(f.map(p => [pkey(p), p.name]));
   $("#setBody").innerHTML = `
-    <div class="set-sec">Fonte da previsão</div>
+    <div class="set-sec">Previsão</div>
     ${SOURCES.map(x => `<div class="opt ${x.id === state.source ? "sel" : ""}" data-src="${x.id}"><span class="rd"></span><div><b>${x.name}</b><small>${x.desc}</small></div></div>`).join("")}
 
-    <div class="set-sec">Sincronização</div>
-    <div class="set-row"><div>No app<small>Atualiza sozinho enquanto está aberto e ao voltar a ele</small></div>${seg("sync", [[15, "15 min"], [30, "30 min"], [60, "1 h"], [0, "Manual"]], cfg.sync)}</div>
-    <div class="set-row"><div>Widgets<small>Frequência no ecrã inicial</small></div>${seg("wsync", [[30, "30 min"], [60, "1 h"], [120, "2 h"], [180, "3 h"]], cfg.wsync)}</div>
-    <div class="set-row"><div>Última sincronização<small>${fmtWhen(store.get("ceu.lastSync"))}</small></div><button class="seg" id="syncNow" style="padding:7px 12px;font-size:12.5px;color:var(--txt)">Sincronizar agora</button></div>
+    <div class="set-sec">Atualização</div>
+    ${row("Atualizar sozinho", "Enquanto o app está aberto e ao voltar a ele", seg("sync", [[15, "15 min"], [30, "30 min"], [60, "1 h"], [0, "Manual"]], cfg.sync))}
+    ${row("Última atualização", fmtWhen(store.get("ceu.lastSync")), `<button class="mini" id="syncNow">Atualizar agora</button>`)}
 
-    <div class="set-sec">Locais</div>
-    <div class="set-row"><div>Usar a minha localização (GPS)<small>Mostra o local onde estás como primeiro local</small></div>${seg("showGps", [[1, "Sim"], [0, "Não"]], cfg.showGps ? 1 : 0)}</div>
-    <div class="set-row"><div>Precisão do GPS<small>Alta é mais exata mas gasta mais bateria</small></div>${seg("hiAcc", [[0, "Normal"], [1, "Alta"]], cfg.hiAcc ? 1 : 0)}</div>
-    <div class="set-row"><div>Local dos widgets</div><select class="sel" id="wplace">${wopts}</select></div>
+    <div class="set-sec">Localização</div>
+    ${row("Usar a minha localização", "Aparece como primeiro local", seg("showGps", [[1, "Sim"], [0, "Não"]], cfg.showGps ? 1 : 0))}
+    ${IS_ANDROID || window.__DEMO__ ? row("Precisão", "Alta é mais exata, mas gasta mais bateria", seg("hiAcc", [[0, "Normal"], [1, "Alta"]], cfg.hiAcc ? 1 : 0)) : ""}
 
     <div class="set-sec">Unidades</div>
-    <div class="set-row"><div>Temperatura</div>${seg("u.t", [["c", "°C"], ["f", "°F"]], cfg.units.t)}</div>
-    <div class="set-row"><div>Vento</div>${seg("u.w", [["kmh", "km/h"], ["ms", "m/s"], ["mph", "mph"], ["kn", "nós"]], cfg.units.w)}</div>
-    <div class="set-row"><div>Precipitação</div>${seg("u.p", [["mm", "mm"], ["in", "pol"]], cfg.units.p)}</div>
-    <div class="set-row"><div>Pressão</div>${seg("u.pr", [["hpa", "hPa"], ["mmhg", "mmHg"], ["inhg", "inHg"]], cfg.units.pr)}</div>
+    ${row("Temperatura", "", seg("u.t", [["c", "°C"], ["f", "°F"]], cfg.units.t))}
+    ${row("Vento", "", seg("u.w", [["kmh", "km/h"], ["ms", "m/s"], ["mph", "mph"], ["kn", "nós"]], cfg.units.w))}
+    ${row("Precipitação", "", seg("u.p", [["mm", "mm"], ["in", "pol"]], cfg.units.p))}
+    ${row("Pressão", "", seg("u.pr", [["hpa", "hPa"], ["mmhg", "mmHg"], ["inhg", "inHg"]], cfg.units.pr))}
 
     <div class="set-sec">Aparência</div>
-    <div class="set-row"><div>Design do app</div>${seg("design", [["classic", "Clássico"], ["glass", "Liquid Glass"]], cfg.design)}</div>
-    ${IS_DESK ? `<div class="set-row"><div>Widget no ambiente de trabalho<small>Arrasta para mover; botão direito para estilo, tamanho e arranque</small></div><select class="sel" id="dwSel"><option value="on"${cfg.dwidget !== false ? " selected" : ""}>Mostrar</option><option value="off"${cfg.dwidget === false ? " selected" : ""}>Esconder</option></select></div>` : ""}
-    <div class="set-row"><div>Estilo dos widgets<small>Toca em ↻ no widget para aplicar já</small></div><select class="sel" id="wstyleSel">${[["classic", "Clássico (cor do tempo)"], ["glass", "Vidro fosco escuro"], ["frost", "Vidro fosco claro"], ["scene", "Imagem da cena"]].map(([v, l]) => `<option value="${v}"${cfg.wstyle === v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
-    ${(IS_ANDROID || window.__DEMO__) && cfg.wstyle === "glass" ? glassSection() : ""}
-    <div class="set-row"><div>Posição da temperatura</div>${seg("layout", [["corner", "Canto"], ["center", "Centro"]], cfg.layout)}</div>
-    <div class="set-row"><div>Decoração de Natal<small>Automática: de 1 a 26 de dezembro</small></div><select class="sel" id="xmasSel">${[["auto", "Automática"], ["on", "Sempre"], ["off", "Desligada"]].map(([v, l]) => `<option value="${v}"${(cfg.xmas || "auto") === v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
-    <div class="set-row"><div>Cena de fundo<small>Muda com o tempo, a hora e a estação</small></div><select class="sel" id="sceneSel">${SCENES.map(([v, l]) => `<option value="${v}"${cfg.scene === v ? " selected" : ""}>${l}</option>`).join("")}</select></div>
-    ${cfg.scene === "monument" ? `<div class="set-row"><div>Monumento<small>Automático: o mais perto de ti no país onde estás</small></div><select class="sel" id="monSel"><option value="auto">Automático</option>${monOptions()}</select></div>` : ""}
-    <div class="set-row"><div>Pessoa na paisagem<small>Veste-se conforme o tempo</small></div>${seg("person", [[1, "Sim"], [0, "Não"]], cfg.person ? 1 : 0)}</div>
-    <div class="set-row"><div>Animação do fundo<small>Estático ou desligado poupa bateria</small></div>${seg("anim", [["on", "Animado"], ["static", "Estático"], ["off", "Desligado"]], cfg.anim)}</div>
+    ${row("Estilo", "", seg("design", [["classic", "Clássico"], ["glass", "Liquid Glass"]], cfg.design))}
+    ${row("Temperatura no topo", "", seg("layout", [["corner", "Canto"], ["center", "Centro"]], cfg.layout))}
     <div class="set-row" style="display:block"><div style="margin-bottom:10px">Cartões visíveis<small>Toca para mostrar ou esconder</small></div>
       <div class="chips2" id="cardChips">${CARDS.map(([k, l]) => `<button data-card="${k}" class="${cfg.hidden.includes(k) ? "" : "on"}">${l}</button>`).join("")}</div></div>
 
+    <div class="set-sec">Paisagem</div>
+    ${row("Cena", "Muda com o tempo, a hora e a estação", sel("sceneSel", SCENES, cfg.scene))}
+    ${cfg.scene === "monument" ? row("Monumento", "Automático: o mais perto de ti", `<select class="sel" id="monSel"><option value="auto">Automático</option>${monOptions()}</select>`) : ""}
+    ${row("Pessoa", "Veste-se conforme o tempo", seg("person", [[1, "Sim"], [0, "Não"]], cfg.person ? 1 : 0))}
+    ${row("Movimento", "Estático ou desligado poupa bateria", seg("anim", [["on", "Animado"], ["static", "Estático"], ["off", "Desligado"]], cfg.anim))}
+    ${row("Natal", "Automático de 1 a 26 de dezembro", sel("xmasSel", [["auto", "Automático"], ["on", "Sempre"], ["off", "Desligado"]], cfg.xmas || "auto"))}
+
+    ${IS_ANDROID || window.__DEMO__ ? `<div class="set-sec">Widgets do ecrã inicial</div>
+    ${row("Estilo", "Toca em ↻ no widget para aplicar", sel("wstyleSel", [["classic", "Clássico"], ["glass", "Vidro fosco escuro"], ["frost", "Vidro fosco claro"], ["scene", "Imagem da cena"]], cfg.wstyle))}
+    ${row("Local", "", sel("wplace", wopts, cfg.wplace))}
+    ${row("Atualizar", "", seg("wsync", [[30, "30 min"], [60, "1 h"], [120, "2 h"], [180, "3 h"]], cfg.wsync))}
+    ${cfg.wstyle === "glass" ? glassSection() : ""}` : ""}
+    ${IS_DESK ? `<div class="set-sec">Widget no ambiente de trabalho</div>${row("Mostrar", "Arrasta para mover · botão direito para estilo e tamanho", sel("dwSel", [["on", "Sim"], ["off", "Não"]], cfg.dwidget !== false ? "on" : "off"))}` : ""}
+
     <div class="set-sec">Dados</div>
-    <button class="btn" id="clearCache">Limpar dados em cache</button>
-    <button class="btn danger" id="resetAll">Repor todas as definições</button>
-    <p class="txt">Céu · previsão Open-Meteo (ECMWF, DWD, NOAA, Météo-France), avisos IPMA, mapa Windy, localização BigDataCloud / OpenStreetMap. A probabilidade de chuva vem dos <i>ensembles</i> do ECMWF, ICON e GFS.</p>`;
+    <div class="set-row"><button class="mini" id="clearCache">Limpar cache</button><button class="mini danger" id="resetAll">Repor definições</button></div>
+    <p class="txt">Previsão Open-Meteo (ECMWF, DWD, NOAA, Météo-France) · avisos IPMA · mapas Esri, RainViewer e Windy · localização BigDataCloud / OpenStreetMap.</p>`;
+  /* agrupa as linhas de cada secção num cartão, como nas definições do iPhone */
+  const body = $("#setBody"); let grp = null;
+  [...body.children].forEach(el => { if(el.classList.contains("set-row") || el.classList.contains("opt")){ if(!grp){ grp = document.createElement("div"); grp.className = "grp"; body.insertBefore(grp, el); } grp.appendChild(el); } else grp = null; });
 }
 $("#setBtn").addEventListener("click", () => { renderSettings(); openSheet("#setSheet"); });
 $("#setBody").addEventListener("click", e => {
@@ -3720,7 +3758,7 @@ function dwSize(){ const h = document.documentElement, w = innerWidth, hh = inne
   h.classList.toggle("sz-sq", w / hh < 1.25);
   const f = sz === "m" ? Math.min(w / 380, hh / 210) : Math.min(w / 190, hh / 120); h.style.setProperty("--dwf", Math.max(.75, Math.min(1.8, f)).toFixed(3));
   if(state && state.data && state.data.fc && WMODE){ clearTimeout(dwSize.t); dwSize.t = setTimeout(() => { const fc = state.data.fc, key = fc.current.time.slice(0, 13); let i = fc.hourly.time.findIndex(t => t.slice(0, 13) === key); renderDesktopWidget(fc, i < 0 ? 0 : i); }, 60); } }
-function dwApply(){ const h = document.documentElement; dwShape(); dwSize(); ["scene", "glass", "dark", "clear"].forEach(k => h.classList.toggle("dw-" + k, DW.style === k)); h.classList.toggle("dw-tiny", innerHeight < 165);
+function dwApply(){ const h = document.documentElement; dwShape(); dwSize(); ["scene", "glass", "dark", "clear"].forEach(k => h.classList.toggle("dw-" + k, DW.style === k));
   if(TAURI && WMODE) TAURI.invoke("set_widget_glass", { on: DW.style === "glass" }).catch(() => {}); }
 function renderDesktopWidget(fc, idx){
   if(!WMODE) return; const c = fc.current, H = fc.hourly, D = fc.daily;
@@ -3750,7 +3788,7 @@ async function dwMenu(){
   m.hidden = false;
 }
 if(WMODE){
-  dwApply(); addEventListener("resize", () => { document.documentElement.classList.toggle("dw-tiny", innerHeight < 165); dwShape(); dwSize(); });
+  dwApply(); addEventListener("resize", () => { dwShape(); dwSize(); });
   addEventListener("contextmenu", e => { e.preventDefault(); if(!KDE) dwMenu(); });
   $("#dw").addEventListener("dblclick", () => TAURI && TAURI.invoke("open_main_window"));
   /* no KDE: clicar no widget pede ao plasmoide para abrir o app Céu */
@@ -3795,6 +3833,7 @@ const PL = (() => {
   addEventListener("keydown", e => { if(e.key === "Escape" && root && !root.hidden) close(); });
   return { open, close, render };
 })();
+addEventListener("scroll", () => { window.__scrollT = performance.now(); }, { passive: true });
 /* ---------- arranque ---------- */
 function applyDesign(){ document.body.classList.toggle("glass", cfg.design === "glass"); document.body.classList.toggle("corner", cfg.layout === "corner"); }
 applyDesign();
