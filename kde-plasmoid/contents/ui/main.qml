@@ -41,23 +41,40 @@ PlasmoidItem {
     Plasmoid.backgroundHints: style === "glass" ? PlasmaCore.Types.DefaultBackground : PlasmaCore.Types.NoBackground
 
     fullRepresentation: Item {
+        id: box
         Layout.preferredWidth: Kirigami.Units.gridUnit * 21
         Layout.preferredHeight: Kirigami.Units.gridUnit * 11
         Layout.minimumWidth: Kirigami.Units.gridUnit * 6
         Layout.minimumHeight: Kirigami.Units.gridUnit * 4
 
+        /* ao arrancar o Plasma a rede e o motor web podem ainda não estar prontos:
+           espera um pouco antes de abrir a página e volta a carregá-la se falhar */
+        property bool ready: false
+        Timer { interval: 2500; running: true; onTriggered: box.ready = true }
+        Timer { id: retry; interval: 5000; onTriggered: view.reload() }
+
         WebEngineView {
+            id: view
             anchors.fill: parent
+            /* perfil próprio e persistente: guarda os últimos dados entre arranques (sem ele tudo se perde ao reiniciar) */
+            profile: WebEngineProfile {
+                storageName: "ceu-plasmoid"
+                offTheRecord: false
+                httpCacheType: WebEngineProfile.DiskHttpCache
+                persistentCookiesPolicy: WebEngineProfile.AllowPersistentCookies
+            }
             backgroundColor: "transparent"
             settings.localContentCanAccessRemoteUrls: true
             settings.localContentCanAccessFileUrls: true
             settings.showScrollBars: false
-            url: Qt.resolvedUrl("app/index.html")
+            url: !box.ready ? "about:blank" : Qt.resolvedUrl("app/index.html")
                  + "?widget=1&kde=1&style=" + root.style
                  + "&lat=" + root.c.lat + "&lon=" + root.c.lon
                  + "&cc=" + encodeURIComponent(root.c.cc || "")
                  + "&name=" + encodeURIComponent(root.c.place || "")
                  + "&o=" + encodeURIComponent(root.opts)
+            onLoadingChanged: req => { if (req.status === WebEngineView.LoadFailedStatus) retry.restart() }
+            onRenderProcessTerminated: (status, code) => retry.restart()
             onContextMenuRequested: request => { request.accepted = true }
             onJavaScriptConsoleMessage: (level, message, lineNumber, sourceID) => { if (message === "CEU_OPEN") root.openApp() }
         }

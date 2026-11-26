@@ -2939,8 +2939,14 @@ async function load(place, force){
     if(my !== state.req) return;
     toast(state.data ? "Sem ligação — a mostrar os últimos dados" : "Não foi possível obter a previsão");
     renderSub();
+    /* sem rede (ex.: logo ao ligar o computador): volta a tentar sozinho, cada vez com mais intervalo */
+    clearTimeout(retryT); retryT = setTimeout(() => refresh(true), Math.min(300000, 4000 * 2 ** Math.min(retryN++, 6)));
+    return;
   }
+  retryN = 0; clearTimeout(retryT);
 }
+let retryT = 0, retryN = 0;
+addEventListener("online", () => { retryN = 0; refresh(true); });
 function placeAt(i){
   const f = favs();
   if(i < 0 || i >= f.length) return null;
@@ -3841,7 +3847,7 @@ let syncT = 0;
 function setupSync(){
   clearInterval(syncT);
   if(!cfg.sync) return;
-  syncT = setInterval(() => { if(document.visibilityState === "visible" && state.data && Date.now() - state.data.ts > cfg.sync * 60000) refresh(true); }, 60000);
+  syncT = setInterval(() => { if(document.visibilityState === "visible" && (!state.data || Date.now() - state.data.ts > cfg.sync * 60000)) refresh(true); }, 60000);
 }
 document.addEventListener("visibilitychange", () => {
   if(document.visibilityState === "visible" && cfg.sync && state.data && Date.now() - state.data.ts > cfg.sync * 60000) refresh(true);
